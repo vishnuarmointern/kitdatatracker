@@ -147,6 +147,22 @@
   @keyframes flash { 0%, 40% { background: var(--amber-soft); } 100% { background: transparent; } }
 
   .empty { color: var(--muted); text-align: center; padding: 40px 0; }
+  .link.fill { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600; }
+  .link:disabled { opacity: .6; cursor: wait; }
+  .confirm { display: flex; gap: 12px 20px; align-items: center; justify-content: space-between; flex-wrap: wrap;
+             background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; }
+  .confirm p { margin: 4px 0 0; color: var(--muted); font-size: 13px; max-width: 640px; }
+  .confirm-actions { display: flex; gap: 8px; }
+  details.allorders { background: var(--card); border-style: dashed; margin: 0 0 8px; }
+  details.allorders > summary { padding: 9px 12px; }
+  .vbtn { font-weight: 600; font-size: 14px; flex: 1; }
+  details.ord { background: var(--row); }
+  details.ord > summary { padding: 9px 12px; }
+  details.ord .pill { font-size: 12px; }
+  details.ord .pill div { margin-top: 2px; }
+  #toast { display: flex; align-items: center; gap: 14px; }
+  #toast button { background: none; border: 1px solid currentColor; color: inherit; border-radius: 6px; padding: 3px 10px; font: inherit; font-weight: 600; cursor: pointer; }
+  #toast.hidden { display: none; }
   #toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--accent); color: var(--on-accent);
            padding: 10px 16px; border-radius: 8px; font-size: 14px; max-width: calc(100% - 32px); z-index: 5; }
   @media (max-width: 560px) { .inner { padding-left: 12px; padding-right: 8px; } .bar { gap: 8px; } }
@@ -178,11 +194,18 @@
       <h1>Kit Requirements</h1>
       <span class="status"><span class="dot" id="dot"></span><span id="updated">Loading…</span></span>
       <span class="status" id="saveState"></span>
+      <button class="link fill" id="autofillBtn" type="button">Autofill</button>
       <button class="link" id="refreshBtn" type="button">Refresh</button>
       <button class="link" id="logoutBtn" type="button">Sign out</button>
     </div>
   </header>
   <main>
+    <div id="confirm" class="confirm hidden" role="dialog" aria-labelledby="confirmTitle">
+      <div><b id="confirmTitle">Autofill all orders?</b>
+      <p>This replaces every current allocation. Lowest order numbers are filled first: painted stock first, then raw for whatever is still missing. You can undo it right after.</p></div>
+      <div class="confirm-actions"><button class="link" id="confirmNo" type="button">Cancel</button>
+      <button class="link fill" id="confirmYes" type="button">Autofill now</button></div>
+    </div>
     <input id="search" type="search" placeholder="Search part, component, kit or order number…" autocomplete="off">
     <p class="legend">
       <span><i class="sw blue"></i>Painted kit items on hand (per colour)</span>
@@ -242,9 +265,18 @@
   }
 
   let toastTimer;
-  function toast(msg) {
-    $('toast').textContent = msg; $('toast').classList.remove('hidden');
-    clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').classList.add('hidden'), 3500);
+  function toast(msg, action, onAction) {
+    const t = $('toast');
+    t.innerHTML = '<span></span>';
+    t.firstChild.textContent = msg;
+    if (action) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = action;
+      b.addEventListener('click', () => { t.classList.add('hidden'); onAction(); });
+      t.appendChild(b);
+    }
+    t.classList.remove('hidden');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.add('hidden'), action ? 12000 : 3500);
   }
 
   // ---------- Login ----------
@@ -285,6 +317,42 @@
     showLogin();
   });
   $('refreshBtn').addEventListener('click', () => load());
+
+  // ---------- Autofill ----------
+  $('autofillBtn').addEventListener('click', () => { $('confirm').classList.remove('hidden'); $('confirmYes').focus(); });
+  $('confirmNo').addEventListener('click', () => $('confirm').classList.add('hidden'));
+  $('confirmYes').addEventListener('click', async () => {
+    const btn = $('confirmYes');
+    btn.disabled = true; btn.textContent = 'Filling…';
+    try {
+      if (Object.keys(pending).length) await flush();
+      while (saving) await new Promise(r => setTimeout(r, 200));
+      saving = true; $('saveState').textContent = 'Autofilling…';
+      const r = await api({ action: 'autofill', token });
+      saving = false;
+      if (!r.ok) { if (r.error === 'SESSION_EXPIRED') return showLogin('Your session expired. Please sign in again.'); throw new Error(r.error); }
+      applySnapshot(r);
+      $('saveState').classList.remove('bad'); $('saveState').textContent = 'All changes saved';
+      $('confirm').classList.add('hidden');
+      const done = leaves.filter(l => !lineFill(l).left).length;
+      const before = r.before || {};
+      toast('Autofilled: ' + done + ' of ' + leaves.length + ' lines fully covered.', 'Undo', () => undoTo(before));
+    } catch (err) {
+      saving = false;
+      toast('Autofill failed. Nothing was changed. Try again.');
+    } finally { btn.disabled = false; btn.textContent = 'Autofill now'; }
+  });
+
+  // Put every allocation back to how it was before autofill.
+  function undoTo(before) {
+    const keys = new Set([...Object.keys(alloc), ...Object.keys(before)]);
+    keys.forEach(k => {
+      const v = before[k] || 0;
+      if (v !== q(k)) { pending[k] = v; v > 0 ? alloc[k] = v : delete alloc[k]; }
+    });
+    safeRender(true);
+    flush().then(() => toast('Autofill undone.'));
+  }
   document.addEventListener('visibilitychange', () => { if (!document.hidden && token) load(); });
   window.addEventListener('beforeunload', e => {
     if (Object.keys(pending).length || saving) { e.preventDefault(); e.returnValue = ''; }
@@ -315,22 +383,22 @@
   }
 
   // ---------- Limits (same rules the server enforces) ----------
+  const need = req => Math.max(0, Math.ceil(Number(req) - 1e-9));   // 0.5 required still needs 1 part
   function maxFor(key) {
     const p = key.split('|'), cur = q(key);
     if (p[0] === 'P') {
       const [, order, kit] = p;
       const lines = leaves.filter(l => l.order === order && l.kit === kit);
       if (!lines.length) return cur;
-      const req = Math.max(...lines.map(l => l.req));
-      const raw = Math.max(...lines.map(l => q(rKey(order, kit, l.comp))));
+      const room = Math.min(...lines.map(l => need(l.req) - q(rKey(order, kit, l.comp))));
       const used = paintedUsed(kit) - cur;
-      return Math.max(0, Math.min(req - raw, ((inv.kits[kit] || {}).onhand || 0) - used));
+      return Math.max(0, Math.min(room, ((inv.kits[kit] || {}).onhand || 0) - used));
     }
     const [, order, kit, comp] = p;
     const line = leaves.find(l => l.order === order && l.kit === kit && l.comp === comp);
     if (!line) return cur;
     const used = rawUsed(comp) - cur;
-    return Math.max(0, Math.min(line.req - q(pKey(order, kit)), ((inv.comps[comp] || {}).onhand || 0) - used));
+    return Math.max(0, Math.min(need(line.req) - q(pKey(order, kit)), ((inv.comps[comp] || {}).onhand || 0) - used));
   }
   function paintedUsed(kit) {
     const orders = new Set(leaves.filter(l => l.kit === kit).map(l => l.order));
@@ -478,7 +546,7 @@
         '<td class="c">' + stepper(rk, c.part, 'red', f.r, maxFor(rk)) + '</td>' +
         '<td class="num cost">' + money(f.cost) + '</td>' + saleCell(f.sale, 'green') +
         '<td class="num left' + (f.left ? '' : ' zero') + '">' + (f.left ? fmt(f.left) : '✓') + '</td></tr>' +
-        (open ? '<tr class="detail"><td colspan="7"><div class="dwrap">' + orderDetail(o) + '</div></td></tr>' : '');
+        (open ? '<tr class="detail"><td colspan="7"><div class="dwrap">' + orderDetail(o, true) + '</div></td></tr>' : '');
     }).join('');
 
     const kitOn = (inv.kits[k.part] || {}).onhand || 0, kitUsed = paintedUsed(k.part);
@@ -506,12 +574,12 @@
   }
 
   // Everything else on the same order, wherever it sits in the tree.
-  function orderDetail(cur) {
+  function orderDetail(cur, markLine) {
     const lines = leaves.filter(l => l.order === cur.order)
       .sort((a, b) => byNum(a.pn, b.pn) || byNum(a.comp, b.comp) || byNum(a.kit, b.kit));
     let done = 0, val = 0, total = 0;
     const rows = lines.map(l => {
-      const f = lineFill(l), me = l === cur;
+      const f = lineFill(l), me = markLine && l === cur;
       val += f.cost; total += l.cost || 0;
       const filled = f.p + f.r;
       if (!f.left) done++;
@@ -533,6 +601,33 @@
       '<div class="tablewrap"><table class="otable"><thead><tr><th>Part</th><th>Component</th><th>Kit</th>' +
       '<th class="num">Req</th><th class="num blue">Painted</th><th class="num red">Raw</th><th class="num cost">Avg Cost</th><th class="num green">Sale Value</th><th>Status</th></tr></thead>' +
       '<tbody>' + rows + '</tbody></table></div>';
+  }
+
+  const statusChip = (done, total, any) => done === total ? '<span class="st full">Fulfilled</span>'
+    : any ? '<span class="st part">Partial</span>' : '<span class="st none">Not started</span>';
+
+  // "View all orders" under a part: every order that includes this part, each opening to the full order.
+  function partOrders(pn, pk) {
+    const byOrder = {};
+    leaves.forEach(l => { if (l.pn === pn && !byOrder[l.order]) byOrder[l.order] = l; });
+    const orders = Object.keys(byOrder).sort(byNum);
+    const wk = pk + '|orders';
+    const items = orders.map(o => {
+      const first = byOrder[o];
+      const lines = leaves.filter(l => l.order === o);
+      const fills = lines.map(lineFill);
+      const done = fills.filter(f => !f.left).length;
+      const any = fills.some(f => f.p + f.r > 0);
+      const ok = wk + '|o:' + o, open = openKeys.has(ok);
+      return '<details class="ord" data-key="' + esc(ok) + '"' + (open ? ' open' : '') + '>' +
+        '<summary><span class="name"><div class="part">' + esc(o) + '</div><div class="desc">' +
+        [first.cust, first.date].filter(Boolean).map(esc).join(' · ') + '</div></span>' +
+        '<span class="pill">' + statusChip(done, lines.length, any) + '<div>' + done + ' of ' + plural(lines.length, 'line') + ' fulfilled</div></span></summary>' +
+        '<div class="inner">' + (open ? '<div class="dwrap">' + orderDetail(first, false) + '</div>' : '') + '</div></details>';
+    }).join('');
+    return '<details class="allorders" data-key="' + esc(wk) + '"' + (openKeys.has(wk) ? ' open' : '') + '>' +
+      '<summary><span class="vbtn">View all orders</span><span class="desc">' + plural(orders.length, 'order') + '</span></summary>' +
+      '<div class="inner">' + items + '</div></details>';
   }
 
   // Open part → component → kit for a line and scroll to its order row.
@@ -587,15 +682,17 @@
       return det(pk, s,
         '<summary><span class="name"><div class="lvl">Part</div><div class="part">' + esc(p.part) + '</div>' +
         (p.desc ? '<div class="desc">' + esc(p.desc) + '</div>' : '') + '</span>' +
-        pill(p.req, p.left, plural(p.comps.length, 'component')) + '</summary><div class="inner">' + comps + '</div>');
+        pill(p.req, p.left, plural(p.comps.length, 'component')) + '</summary><div class="inner">' + partOrders(p.part, pk) + comps + '</div>');
     }).join('');
   }
 
   // Remember which buttons are open so refreshes don't collapse them.
   $('list').addEventListener('toggle', e => {
     const key = e.target.dataset && e.target.dataset.key;
-    if (!key || $('search').value.trim()) return;
-    e.target.open ? openKeys.add(key) : openKeys.delete(key);
+    if (!key) return;
+    const lazy = e.target.open && e.target.classList.contains('ord') && !e.target.querySelector('.dwrap');
+    if (!$('search').value.trim() || lazy) e.target.open ? openKeys.add(key) : openKeys.delete(key);
+    if (lazy) safeRender(true);
   }, true);
 
   if (token) showApp(); else $('u').focus();

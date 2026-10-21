@@ -12,11 +12,13 @@
     --bg: #f5f6f8; --card: #ffffff; --ink: #1b1f24; --muted: #66707c; --line: #e3e6ea; --row: #fafbfc;
     --accent: #2b3340; --on-accent: #ffffff; --danger: #c4312b; --ok: #2e7d4f;
     --blue: #1764d6; --blue-soft: #e8f0fd; --red: #cf2e2e; --red-soft: #fdecec;
+    --green: #1f7a45; --green-soft: #e6f4ec; --amber: #9a6200; --amber-soft: #fdf3dc;
   }
   @media (prefers-color-scheme: dark) {
     :root { --bg: #121417; --card: #1b1e23; --ink: #e9ecef; --muted: #9aa3ad; --line: #2c3138; --row: #20242a;
             --accent: #dfe4ea; --on-accent: #15181c; --danger: #ff7b72; --ok: #5cc28a;
-            --blue: #6aa2ff; --blue-soft: #1c2a40; --red: #ff7676; --red-soft: #3a1f22; }
+            --blue: #6aa2ff; --blue-soft: #1c2a40; --red: #ff7676; --red-soft: #3a1f22;
+            --green: #5cc28a; --green-soft: #17301f; --amber: #e3b341; --amber-soft: #352a12; }
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink);
@@ -79,7 +81,7 @@
   .inner { padding: 0 12px 12px 30px; }
 
   .tablewrap { overflow-x: auto; margin-top: 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); }
-  table { width: 100%; border-collapse: collapse; min-width: 560px; }
+  table { width: 100%; border-collapse: collapse; min-width: 680px; }
   th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; white-space: nowrap; }
   th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); background: var(--row); }
   th.num, td.num { text-align: right; }
@@ -112,6 +114,33 @@
   .pool dt { color: var(--muted); } .pool dd { margin: 0; text-align: right; font-weight: 650; font-variant-numeric: tabular-nums; }
   .pool .note { margin-top: 6px; color: var(--muted); font-size: 12px; }
   .pool .warn { margin-top: 6px; color: var(--danger); font-weight: 600; font-size: 12px; }
+
+  td.green, th.green { color: var(--green); } td.green { font-weight: 650; }
+
+  /* Order breakdown */
+  .otog { display: inline-flex; align-items: center; gap: 8px; background: none; border: 0; padding: 0; color: var(--ink);
+          font: inherit; font-weight: 650; cursor: pointer; text-align: left; }
+  .otog::before { content: ""; width: 6px; height: 6px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted);
+                  transform: rotate(-45deg); transition: transform .15s; flex: none; }
+  .otog[aria-expanded="true"]::before { transform: rotate(45deg); }
+  .otog small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
+  tr.detail > td { background: var(--row); padding: 10px 12px 14px; white-space: normal; }
+  .dwrap { width: 0; min-width: 100%; }
+  .ohead { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 13px; color: var(--muted); }
+  .ohead b { color: var(--ink); }
+  .ohead b.green { color: var(--green); }
+  .otable { min-width: 560px; }
+  .ohead + .tablewrap { margin-top: 8px; }
+  .otable th, .otable td { padding: 6px 10px; font-size: 13px; }
+  .otable tr.me td { background: var(--row); }
+  .go { background: none; border: 0; padding: 0; font: inherit; color: var(--ink); text-decoration: underline;
+        text-underline-offset: 2px; cursor: pointer; text-align: left; font-weight: 600; }
+  .st { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 99px; }
+  .st.full { color: var(--green); background: var(--green-soft); }
+  .st.part { color: var(--amber); background: var(--amber-soft); }
+  .st.none { color: var(--muted); background: var(--row); border: 1px solid var(--line); }
+  tr.flash > td { animation: flash 2.2s ease-out; }
+  @keyframes flash { 0%, 40% { background: var(--amber-soft); } 100% { background: transparent; } }
 
   .empty { color: var(--muted); text-align: center; padding: 40px 0; }
   #toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--accent); color: var(--on-accent);
@@ -187,6 +216,15 @@
   const pKey = (order, kit) => ['P', order, kit].join('|');
   const rKey = (order, kit, comp) => ['R', order, kit, comp].join('|');
   const q = k => alloc[k] || 0;
+  const money = n => '$' + Number(n || 0).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  // total_cost_cdn is the cost of the whole line (qty required × unit cost), so divide to get one unit.
+  const unitCost = l => (l.req ? (l.cost || 0) / l.req : 0);
+  const lineFill = l => {
+    const p = q(pKey(l.order, l.kit)), r = q(rKey(l.order, l.kit, l.comp));
+    return { p, r, value: (p + r) * unitCost(l), left: Math.max(0, l.req - p - r) };
+  };
+  const rowId = (pn, comp, kit, order) => 'p:' + pn + '|c:' + comp + '|k:' + kit + '|o:' + order;
+  const openOrders = new Set();
 
   async function api(payload) {
     // text/plain avoids a CORS preflight, which Apps Script doesn't support.
@@ -336,6 +374,15 @@
   }
 
   $('list').addEventListener('click', e => {
+    const t = e.target.closest('button[data-otog]');
+    if (t) {
+      const id = t.dataset.otog;
+      openOrders.has(id) ? openOrders.delete(id) : openOrders.add(id);
+      safeRender(true);
+      return;
+    }
+    const g = e.target.closest('button[data-go]');
+    if (g) { try { goTo.apply(null, JSON.parse(g.dataset.go)); } catch (err) {} return; }
     const b = e.target.closest('button[data-k]');
     if (!b) return;
     lastFocus = { k: b.dataset.k, c: b.dataset.c, d: b.dataset.d };
@@ -410,15 +457,20 @@
   }
 
   function ordersBlock(c, k) {
-    let tReq = 0, tP = 0, tR = 0, tLeft = 0;
+    let tReq = 0, tP = 0, tR = 0, tLeft = 0, tVal = 0;
     const body = k.orders.map(o => {
       const pk = pKey(o.order, k.part), rk = rKey(o.order, k.part, c.part);
-      const pv = q(pk), rv = q(rk), left = Math.max(0, o.req - pv - rv);
-      tReq += o.req; tP += pv; tR += rv; tLeft += left;
-      return '<tr><td>' + esc(o.order) + '</td><td class="num">' + fmt(o.req) + '</td>' +
-        '<td class="c">' + stepper(pk, c.part, 'blue', pv, maxFor(pk)) + '</td>' +
-        '<td class="c">' + stepper(rk, c.part, 'red', rv, maxFor(rk)) + '</td>' +
-        '<td class="num left' + (left ? '' : ' zero') + '">' + (left ? fmt(left) : '✓') + '</td></tr>';
+      const f = lineFill(o);
+      tReq += o.req; tP += f.p; tR += f.r; tLeft += f.left; tVal += f.value;
+      const id = rowId(o.pn, c.part, k.part, o.order), open = openOrders.has(id);
+      return '<tr data-row="' + esc(id) + '"><td><button type="button" class="otog" data-otog="' + esc(id) + '" aria-expanded="' + open + '">' +
+        '<span>' + esc(o.order) + (o.cust ? '<small>' + esc(o.cust) + '</small>' : '') + '</span></button></td>' +
+        '<td class="num">' + fmt(o.req) + '</td>' +
+        '<td class="c">' + stepper(pk, c.part, 'blue', f.p, maxFor(pk)) + '</td>' +
+        '<td class="c">' + stepper(rk, c.part, 'red', f.r, maxFor(rk)) + '</td>' +
+        '<td class="num green">' + money(f.value) + '</td>' +
+        '<td class="num left' + (f.left ? '' : ' zero') + '">' + (f.left ? fmt(f.left) : '✓') + '</td></tr>' +
+        (open ? '<tr class="detail"><td colspan="6"><div class="dwrap">' + orderDetail(o) + '</div></td></tr>' : '');
     }).join('');
 
     const kitOn = (inv.kits[k.part] || {}).onhand || 0, kitUsed = paintedUsed(k.part);
@@ -433,15 +485,58 @@
       (used > on ? '<div class="warn">Over-allocated by ' + fmt(used - on) + '. On hand dropped in the sheet. Remove some to fix.</div>' : '') + '</div>';
 
     return '<div class="tablewrap"><table><thead><tr><th>Order number</th><th class="num">Qty required</th>' +
-      '<th class="c blue">Painted</th><th class="c red">Raw</th><th class="num">Still needed</th></tr></thead>' +
+      '<th class="c blue">Painted</th><th class="c red">Raw</th><th class="num green">Value (CAD)</th><th class="num">Still needed</th></tr></thead>' +
       '<tbody>' + body + '</tbody><tfoot><tr><td>Total</td><td class="num">' + fmt(tReq) + '</td>' +
-      '<td class="c blue">' + fmt(tP) + '</td><td class="c red">' + fmt(tR) + '</td><td class="num">' + fmt(tLeft) + '</td></tr></tfoot></table></div>' +
+      '<td class="c blue">' + fmt(tP) + '</td><td class="c red">' + fmt(tR) + '</td><td class="num green">' + money(tVal) + '</td>' +
+      '<td class="num">' + fmt(tLeft) + '</td></tr></tfoot></table></div>' +
       '<div class="pools">' +
       pool('blue', 'Painted ' + esc(k.part) + (k.colour ? ' · ' + esc(k.colour) : ''), kitOn, kitUsed,
            kitComps > 1 ? '<div class="note">This kit has ' + kitComps + ' components. One painted kit covers the order under each of them.</div>' : '') +
       pool('red', 'Raw ' + esc(c.part), compOn, compUsed,
            otherKits.length ? '<div class="note">Shared with ' + otherKits.map(esc).join(', ') + '</div>' : '') +
       '</div>';
+  }
+
+  // Everything else on the same order, wherever it sits in the tree.
+  function orderDetail(cur) {
+    const lines = leaves.filter(l => l.order === cur.order)
+      .sort((a, b) => byNum(a.pn, b.pn) || byNum(a.comp, b.comp) || byNum(a.kit, b.kit));
+    let done = 0, val = 0, total = 0;
+    const rows = lines.map(l => {
+      const f = lineFill(l), me = l === cur;
+      val += f.value; total += l.cost || 0;
+      const filled = f.p + f.r;
+      if (!f.left) done++;
+      const st = !f.left ? '<span class="st full">Fulfilled</span>'
+               : filled ? '<span class="st part">Partial · ' + fmt(filled) + '/' + fmt(l.req) + '</span>'
+               : '<span class="st none">Not started</span>';
+      const go = me ? '<b>' + esc(l.comp) + '</b> <span class="desc">(this line)</span>'
+               : '<button type="button" class="go" data-go="' + esc(JSON.stringify([l.pn, l.comp, l.kit, l.order])) + '">' + esc(l.comp) + '</button>';
+      return '<tr' + (me ? ' class="me"' : '') + '><td>' + esc(l.pn) + '</td><td title="' + esc(l.compDesc || '') + '">' + go + '</td>' +
+        '<td>' + esc(l.kit) + (l.colour ? ' <span class="desc">· ' + esc(l.colour) + '</span>' : '') + '</td>' +
+        '<td class="num">' + fmt(l.req) + '</td><td class="num blue">' + fmt(f.p) + '</td><td class="num red">' + fmt(f.r) + '</td>' +
+        '<td class="num green">' + money(f.value) + '</td><td>' + st + '</td></tr>';
+    }).join('');
+    return '<div class="ohead"><span>Order <b>' + esc(cur.order) + '</b></span>' +
+      (cur.cust ? '<span>Customer <b>' + esc(cur.cust) + '</b></span>' : '') +
+      (cur.date ? '<span>Ordered <b>' + esc(cur.date) + '</b></span>' : '') +
+      '<span><b>' + done + ' of ' + lines.length + '</b> lines fulfilled</span>' +
+      '<span>Allocated <b class="green">' + money(val) + '</b> of <b>' + money(total) + '</b></span></div>' +
+      '<div class="tablewrap"><table class="otable"><thead><tr><th>Part</th><th>Component</th><th>Kit</th>' +
+      '<th class="num">Req</th><th class="num blue">Painted</th><th class="num red">Raw</th><th class="num green">Value</th><th>Status</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody></table></div>';
+  }
+
+  // Open part → component → kit for a line and scroll to its order row.
+  function goTo(pn, comp, kit, order) {
+    if ($('search').value) $('search').value = '';
+    const pk = 'p:' + pn, ck = pk + '|c:' + comp, kk = ck + '|k:' + kit;
+    [pk, ck, kk].forEach(k => openKeys.add(k));
+    safeRender(true);
+    const row = $('list').querySelector('tr[data-row="' + CSS.escape(rowId(pn, comp, kit, order)) + '"]');
+    if (!row) return;
+    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash');
   }
 
   function render() {

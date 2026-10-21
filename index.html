@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; form-action 'none'; base-uri 'none'">
+<title>Kit Tracker</title>
+<style>
+  :root {
+    --bg: #f5f6f8; --card: #ffffff; --ink: #1b1f24; --muted: #66707c; --line: #e3e6ea;
+    --accent: #0f5bd8; --accent-soft: #e8f0fd; --row: #fafbfc; --danger: #c4312b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #121417; --card: #1b1e23; --ink: #e9ecef; --muted: #9aa3ad; --line: #2c3138;
+            --accent: #6aa2ff; --accent-soft: #1e2a3d; --row: #20242a; --danger: #ff7b72; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .hidden { display: none !important; }
+
+  /* Login */
+  #login { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
+  .login-card { width: 100%; max-width: 360px; background: var(--card); border: 1px solid var(--line);
+                border-radius: 14px; padding: 28px; }
+  .lock { width: 40px; height: 40px; border-radius: 10px; background: var(--accent-soft); color: var(--accent);
+          display: grid; place-items: center; margin-bottom: 14px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 20px; font-size: 14px; }
+  label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 6px; }
+  input { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+          background: var(--bg); color: var(--ink); font: inherit; }
+  input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+  .btn { width: 100%; margin-top: 18px; padding: 11px; border: 0; border-radius: 8px; background: var(--accent);
+         color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+  .btn:disabled { opacity: .6; cursor: wait; }
+  .err { color: var(--danger); font-size: 13px; min-height: 18px; margin-top: 10px; }
+
+  /* App */
+  header { position: sticky; top: 0; z-index: 2; background: var(--card); border-bottom: 1px solid var(--line); }
+  .bar { max-width: 960px; margin: 0 auto; padding: 12px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .bar h1 { font-size: 17px; margin: 0; flex: 1 1 auto; }
+  .status { color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 6px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #2ea44f; }
+  .dot.stale { background: #d29922; }
+  .link { background: none; border: 1px solid var(--line); color: var(--ink); border-radius: 8px;
+          padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+  main { max-width: 960px; margin: 0 auto; padding: 16px; }
+  #search { margin-bottom: 14px; }
+  .count { color: var(--muted); font-size: 13px; margin: 0 0 10px; }
+
+  details { background: var(--card); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; }
+  details details { border-radius: 8px; margin: 8px 0 0; background: var(--row); }
+  summary { list-style: none; cursor: pointer; padding: 12px 14px; display: flex; align-items: center; gap: 12px; }
+  summary::-webkit-details-marker { display: none; }
+  summary::before { content: ""; width: 7px; height: 7px; border-right: 2px solid var(--muted);
+                    border-bottom: 2px solid var(--muted); transform: rotate(-45deg); transition: transform .15s; flex: none; }
+  details[open] > summary::before { transform: rotate(45deg); }
+  .name { min-width: 0; flex: 1; }
+  .part { font-weight: 650; font-variant-numeric: tabular-nums; word-break: break-word; }
+  .desc { color: var(--muted); font-size: 13px; }
+  .pill { flex: none; text-align: right; font-size: 12px; color: var(--muted); }
+  .pill b { display: block; font-size: 16px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .inner { padding: 0 12px 12px 30px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; background: var(--card);
+          border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); background: var(--row); }
+  td:last-child, th:last-child { text-align: right; }
+  tr:last-child td { border-bottom: 0; }
+  tfoot td { font-weight: 700; background: var(--row); }
+  .empty { color: var(--muted); text-align: center; padding: 40px 0; }
+  @media (max-width: 520px) { .inner { padding-left: 14px; } .bar { gap: 8px; } }
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<section id="login">
+  <form class="login-card" id="loginForm" autocomplete="off">
+    <div class="lock" aria-hidden="true">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+    </div>
+    <h1>Kit Tracker</h1>
+    <p class="sub">Restricted. Sign in to continue.</p>
+    <label for="u">Username</label>
+    <input id="u" name="u" required autocomplete="off" spellcheck="false" autocapitalize="off">
+    <label for="p">Password</label>
+    <input id="p" name="p" type="password" required autocomplete="off">
+    <button class="btn" id="loginBtn" type="submit">Sign in</button>
+    <div class="err" id="loginErr" role="alert"></div>
+  </form>
+</section>
+
+<!-- ============ APP ============ -->
+<section id="app" class="hidden">
+  <header>
+    <div class="bar">
+      <h1>Component Requirements</h1>
+      <span class="status"><span class="dot" id="dot"></span><span id="updated">Loading…</span></span>
+      <button class="link" id="refreshBtn" type="button">Refresh</button>
+      <button class="link" id="logoutBtn" type="button">Sign out</button>
+    </div>
+  </header>
+  <main>
+    <input id="search" type="search" placeholder="Search component, kit or order number…" autocomplete="off">
+    <p class="count" id="count"></p>
+    <div id="list"></div>
+  </main>
+</section>
+
+<script>
+(() => {
+  // ====== CONFIG: paste your Apps Script web app URL here ======
+  const API_URL = 'https://script.google.com/macros/s/AKfycbylM1wj2LBLk3bDl3fndyolAc7-7zJ50wyXGSzTqv8to6nIsrggpNNFiBdwfyptsVp9/exec';
+  const REFRESH_SECONDS = 60;
+  // =============================================================
+
+  const $ = id => document.getElementById(id);
+  const store = {
+    get: k => { try { return sessionStorage.getItem(k); } catch (e) { return null; } },
+    set: (k, v) => { try { sessionStorage.setItem(k, v); } catch (e) {} },
+    del: k => { try { sessionStorage.removeItem(k); } catch (e) {} }
+  };
+  let token = store.get('kt_token');
+  let data = [];
+  let timer = null;
+  const openKeys = new Set();
+
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  const fmt = n => Number(n).toLocaleString(undefined, { maximumFractionDigits: 2 });
+
+  async function api(payload) {
+    // text/plain avoids a CORS preflight, which Apps Script doesn't support.
+    const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                                       body: JSON.stringify(payload), redirect: 'follow', cache: 'no-store' });
+    if (!res.ok) throw new Error('Network error ' + res.status);
+    return res.json();
+  }
+
+  // ---------- Login ----------
+  $('loginForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = $('loginBtn');
+    btn.disabled = true; $('loginErr').textContent = '';
+    try {
+      const r = await api({ action: 'login', username: $('u').value, password: $('p').value });
+      $('p').value = '';
+      if (!r.ok) { $('loginErr').textContent = r.error || 'Sign in failed.'; return; }
+      token = r.token; store.set('kt_token', token);
+      showApp();
+    } catch (err) {
+      $('loginErr').textContent = 'Could not reach the server. Check your connection.';
+    } finally { btn.disabled = false; }
+  });
+
+  function showLogin(msg) {
+    clearInterval(timer); timer = null;
+    token = null; store.del('kt_token'); data = [];
+    $('list').innerHTML = '';
+    $('app').classList.add('hidden'); $('login').classList.remove('hidden');
+    $('loginErr').textContent = msg || '';
+    $('u').focus();
+  }
+
+  function showApp() {
+    $('login').classList.add('hidden'); $('app').classList.remove('hidden');
+    load();
+    clearInterval(timer);
+    timer = setInterval(() => { if (!document.hidden) load(); }, REFRESH_SECONDS * 1000);
+  }
+
+  $('logoutBtn').addEventListener('click', () => {
+    if (token) api({ action: 'logout', token }).catch(() => {});
+    showLogin();
+  });
+  $('refreshBtn').addEventListener('click', () => load());
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && token) load(); });
+
+  // ---------- Data ----------
+  let loading = false;
+  async function load() {
+    if (loading || !token) return;
+    loading = true;
+    try {
+      const r = await api({ action: 'data', token });
+      if (!r.ok) { if (r.error === 'SESSION_EXPIRED') return showLogin('Your session expired. Please sign in again.'); throw new Error(r.error); }
+      data = r.components || [];
+      $('dot').classList.remove('stale');
+      $('updated').textContent = 'Updated ' + new Date(r.updated).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      render();
+    } catch (err) {
+      $('dot').classList.add('stale');
+      $('updated').textContent = 'Couldn’t refresh, retrying';
+    } finally { loading = false; }
+  }
+
+  $('search').addEventListener('input', render);
+
+  function render() {
+    const q = $('search').value.trim().toLowerCase();
+    const match = s => s.toLowerCase().includes(q);
+    const rows = !q ? data : data.filter(c =>
+      match(c.part) || match(c.desc) ||
+      c.kits.some(k => match(k.part) || match(k.desc) || k.orders.some(o => match(o.order))));
+
+    $('count').textContent = rows.length + ' component' + (rows.length === 1 ? '' : 's');
+    if (!rows.length) { $('list').innerHTML = '<p class="empty">' + (data.length ? 'No matches.' : 'No open requirements.') + '</p>'; return; }
+
+    $('list').innerHTML = rows.map(c => {
+      const ck = 'c:' + c.part;
+      const kits = c.kits.map(k => {
+        const kk = ck + '|k:' + k.part;
+        const body = k.orders.map(o => '<tr><td>' + esc(o.order) + '</td><td>' + fmt(o.qty) + '</td></tr>').join('');
+        return '<details data-key="' + esc(kk) + '"' + (openKeys.has(kk) || q ? ' open' : '') + '>' +
+          '<summary><span class="name"><div class="part">' + esc(k.part) + '</div>' +
+          (k.desc ? '<div class="desc">' + esc(k.desc) + '</div>' : '') + '</span>' +
+          '<span class="pill"><b>' + fmt(k.total) + '</b>' + k.orders.length + ' order' + (k.orders.length === 1 ? '' : 's') + '</span></summary>' +
+          '<div class="inner"><table><thead><tr><th>Order number</th><th>Quantity required</th></tr></thead>' +
+          '<tbody>' + body + '</tbody><tfoot><tr><td>Total</td><td>' + fmt(k.total) + '</td></tr></tfoot></table></div></details>';
+      }).join('');
+      return '<details data-key="' + esc(ck) + '"' + (openKeys.has(ck) || q ? ' open' : '') + '>' +
+        '<summary><span class="name"><div class="part">' + esc(c.part) + '</div>' +
+        (c.desc ? '<div class="desc">' + esc(c.desc) + '</div>' : '') + '</span>' +
+        '<span class="pill"><b>' + fmt(c.total) + '</b>' + c.kits.length + ' kit' + (c.kits.length === 1 ? '' : 's') + '</span></summary>' +
+        '<div class="inner">' + kits + '</div></details>';
+    }).join('');
+  }
+
+  // Remember which buttons are open so auto-refresh doesn't collapse them.
+  $('list').addEventListener('toggle', e => {
+    const key = e.target.dataset && e.target.dataset.key;
+    if (!key || $('search').value.trim()) return;
+    e.target.open ? openKeys.add(key) : openKeys.delete(key);
+  }, true);
+
+  if (token) showApp(); else $('u').focus();
+})();
+</script>
+</body>
+</html>

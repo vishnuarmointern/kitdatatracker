@@ -153,9 +153,15 @@
              background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; }
   .confirm p { margin: 4px 0 0; color: var(--muted); font-size: 13px; max-width: 640px; }
   .confirm-actions { display: flex; gap: 8px; }
-  details.allorders { background: var(--card); border-style: dashed; margin: 0 0 8px; }
-  details.allorders > summary { padding: 9px 12px; }
-  .vbtn { font-weight: 600; font-size: 14px; flex: 1; }
+  .vall { margin-top: 8px; display: inline-flex; align-items: center; gap: 6px; background: var(--card); color: var(--ink);
+          border: 1px solid var(--line); border-radius: 8px; padding: 5px 12px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .vall:hover { border-color: var(--muted); }
+  .vall[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  .vall span { font-weight: 400; opacity: .8; }
+  .allorders { border: 1px dashed var(--line); border-radius: 10px; padding: 10px; margin: 0 0 10px; background: var(--card); }
+  .allorders-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 0 2px 4px; }
+  .allorders-head b { font-size: 14px; }
+  .allorders details.ord:first-of-type { margin-top: 4px; }
   details.ord { background: var(--row); }
   details.ord > summary { padding: 9px 12px; }
   details.ord .pill { font-size: 12px; }
@@ -457,6 +463,18 @@
       safeRender(true);
       return;
     }
+    const v = e.target.closest('button[data-vall]');
+    if (v) {
+      e.preventDefault();   // the button sits on the part's tab; don't also open/close the part
+      const pk = v.dataset.vall, wk = pk + '|orders';
+      if (openKeys.has(wk)) openKeys.delete(wk); else { openKeys.add(wk); openKeys.add(pk); }
+      safeRender(true);
+      if (openKeys.has(wk)) {
+        const panel = $('list').querySelector('[data-panel="' + CSS.escape(wk) + '"]');
+        if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      return;
+    }
     const g = e.target.closest('button[data-go]');
     if (g) { try { goTo.apply(null, JSON.parse(g.dataset.go)); } catch (err) {} return; }
     const b = e.target.closest('button[data-k]');
@@ -625,9 +643,9 @@
         '<span class="pill">' + statusChip(done, lines.length, any) + '<div>' + done + ' of ' + plural(lines.length, 'line') + ' fulfilled</div></span></summary>' +
         '<div class="inner">' + (open ? '<div class="dwrap">' + orderDetail(first, false) + '</div>' : '') + '</div></details>';
     }).join('');
-    return '<details class="allorders" data-key="' + esc(wk) + '"' + (openKeys.has(wk) ? ' open' : '') + '>' +
-      '<summary><span class="vbtn">View all orders</span><span class="desc">' + plural(orders.length, 'order') + '</span></summary>' +
-      '<div class="inner">' + items + '</div></details>';
+    if (!openKeys.has(wk)) return '';
+    return '<div class="allorders" data-panel="' + esc(wk) + '"><div class="allorders-head"><b>All orders for ' + esc(pn) + '</b>' +
+      '<span class="desc">' + plural(orders.length, 'order') + '</span></div>' + items + '</div>';
   }
 
   // Open part → component → kit for a line and scroll to its order row.
@@ -681,7 +699,10 @@
       }).join('');
       return det(pk, s,
         '<summary><span class="name"><div class="lvl">Part</div><div class="part">' + esc(p.part) + '</div>' +
-        (p.desc ? '<div class="desc">' + esc(p.desc) + '</div>' : '') + '</span>' +
+        (p.desc ? '<div class="desc">' + esc(p.desc) + '</div>' : '') +
+        (() => { const n = new Set(leaves.filter(l => l.pn === p.part).map(l => l.order)).size, on = openKeys.has(pk + '|orders');
+                 return '<button type="button" class="vall" data-vall="' + esc(pk) + '" aria-pressed="' + on + '">' +
+                   (on ? 'Hide orders' : 'View all orders') + ' <span>(' + n + ')</span></button>'; })() + '</span>' +
         pill(p.req, p.left, plural(p.comps.length, 'component')) + '</summary><div class="inner">' + partOrders(p.part, pk) + comps + '</div>');
     }).join('');
   }

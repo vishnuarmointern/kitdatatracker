@@ -41,6 +41,8 @@
          color: var(--on-accent); font: inherit; font-weight: 600; cursor: pointer; }
   .btn:disabled { opacity: .6; cursor: wait; }
   .err { color: var(--danger); font-size: 13px; min-height: 18px; margin-top: 10px; }
+  #salesWarn { min-height: 0; margin: 0 0 8px; }
+  #salesWarn:empty { display: none; }
 
   /* App */
   header { position: sticky; top: 0; z-index: 3; background: var(--card); border-bottom: 1px solid var(--line); }
@@ -81,7 +83,7 @@
   .inner { padding: 0 12px 12px 30px; }
 
   .tablewrap { overflow-x: auto; margin-top: 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); }
-  table { width: 100%; border-collapse: collapse; min-width: 680px; }
+  table { width: 100%; border-collapse: collapse; min-width: 780px; }
   th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; white-space: nowrap; }
   th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); background: var(--row); }
   th.num, td.num { text-align: right; }
@@ -116,6 +118,8 @@
   .pool .warn { margin-top: 6px; color: var(--danger); font-weight: 600; font-size: 12px; }
 
   td.green, th.green { color: var(--green); } td.green { font-weight: 650; }
+  td.cost, th.cost { color: var(--muted); }
+  .na { color: var(--muted); font-weight: 400; }
 
   /* Order breakdown */
   .otog { display: inline-flex; align-items: center; gap: 8px; background: none; border: 0; padding: 0; color: var(--ink);
@@ -129,7 +133,7 @@
   .ohead { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 13px; color: var(--muted); }
   .ohead b { color: var(--ink); }
   .ohead b.green { color: var(--green); }
-  .otable { min-width: 560px; }
+  .otable { min-width: 640px; }
   .ohead + .tablewrap { margin-top: 8px; }
   .otable th, .otable td { padding: 6px 10px; font-size: 13px; }
   .otable tr.me td { background: var(--row); }
@@ -184,6 +188,7 @@
       <span><i class="sw blue"></i>Painted kit items on hand (per colour)</span>
       <span><i class="sw red"></i>Raw components on hand (shared by all colours)</span>
     </p>
+    <p class="err" id="salesWarn" role="status"></p>
     <p class="count" id="count"></p>
     <div id="list"></div>
   </main>
@@ -221,8 +226,10 @@
   const unitCost = l => (l.req ? (l.cost || 0) / l.req : 0);
   const lineFill = l => {
     const p = q(pKey(l.order, l.kit)), r = q(rKey(l.order, l.kit, l.comp));
-    return { p, r, value: (p + r) * unitCost(l), left: Math.max(0, l.req - p - r) };
+    return { p, r, cost: (p + r) * unitCost(l), sale: l.price == null ? null : (p + r) * l.price, left: Math.max(0, l.req - p - r) };
   };
+  // Sale price comes from Sales_Detail (unit_cdn); some lines may not have one.
+  const saleCell = (v, cls) => '<td class="num ' + cls + '">' + (v == null ? '<span class="na" title="No unit_cdn in Sales_Detail for this order and part">—</span>' : money(v)) + '</td>';
   const rowId = (pn, comp, kit, order) => 'p:' + pn + '|c:' + comp + '|k:' + kit + '|o:' + order;
   const openOrders = new Set();
 
@@ -287,6 +294,7 @@
   function applySnapshot(r) {
     leaves = r.leaves || []; inv = r.inv || { kits: {}, comps: {} }; alloc = r.alloc || {};
     Object.keys(pending).forEach(k => { pending[k] > 0 ? alloc[k] = pending[k] : delete alloc[k]; });
+    $('salesWarn').textContent = r.salesError || '';
     $('dot').classList.remove('stale');
     $('updated').textContent = 'Updated ' + new Date(r.updated).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
     safeRender();
@@ -457,20 +465,20 @@
   }
 
   function ordersBlock(c, k) {
-    let tReq = 0, tP = 0, tR = 0, tLeft = 0, tVal = 0;
+    let tReq = 0, tP = 0, tR = 0, tLeft = 0, tCost = 0, tSale = 0;
     const body = k.orders.map(o => {
       const pk = pKey(o.order, k.part), rk = rKey(o.order, k.part, c.part);
       const f = lineFill(o);
-      tReq += o.req; tP += f.p; tR += f.r; tLeft += f.left; tVal += f.value;
+      tReq += o.req; tP += f.p; tR += f.r; tLeft += f.left; tCost += f.cost; tSale += f.sale || 0;
       const id = rowId(o.pn, c.part, k.part, o.order), open = openOrders.has(id);
       return '<tr data-row="' + esc(id) + '"><td><button type="button" class="otog" data-otog="' + esc(id) + '" aria-expanded="' + open + '">' +
         '<span>' + esc(o.order) + (o.cust ? '<small>' + esc(o.cust) + '</small>' : '') + '</span></button></td>' +
         '<td class="num">' + fmt(o.req) + '</td>' +
         '<td class="c">' + stepper(pk, c.part, 'blue', f.p, maxFor(pk)) + '</td>' +
         '<td class="c">' + stepper(rk, c.part, 'red', f.r, maxFor(rk)) + '</td>' +
-        '<td class="num green">' + money(f.value) + '</td>' +
+        '<td class="num cost">' + money(f.cost) + '</td>' + saleCell(f.sale, 'green') +
         '<td class="num left' + (f.left ? '' : ' zero') + '">' + (f.left ? fmt(f.left) : '✓') + '</td></tr>' +
-        (open ? '<tr class="detail"><td colspan="6"><div class="dwrap">' + orderDetail(o) + '</div></td></tr>' : '');
+        (open ? '<tr class="detail"><td colspan="7"><div class="dwrap">' + orderDetail(o) + '</div></td></tr>' : '');
     }).join('');
 
     const kitOn = (inv.kits[k.part] || {}).onhand || 0, kitUsed = paintedUsed(k.part);
@@ -485,9 +493,9 @@
       (used > on ? '<div class="warn">Over-allocated by ' + fmt(used - on) + '. On hand dropped in the sheet. Remove some to fix.</div>' : '') + '</div>';
 
     return '<div class="tablewrap"><table><thead><tr><th>Order number</th><th class="num">Qty required</th>' +
-      '<th class="c blue">Painted</th><th class="c red">Raw</th><th class="num green">Value (CAD)</th><th class="num">Still needed</th></tr></thead>' +
+      '<th class="c blue">Painted</th><th class="c red">Raw</th><th class="num cost">Avg Cost</th><th class="num green">Sale Value</th><th class="num">Still needed</th></tr></thead>' +
       '<tbody>' + body + '</tbody><tfoot><tr><td>Total</td><td class="num">' + fmt(tReq) + '</td>' +
-      '<td class="c blue">' + fmt(tP) + '</td><td class="c red">' + fmt(tR) + '</td><td class="num green">' + money(tVal) + '</td>' +
+      '<td class="c blue">' + fmt(tP) + '</td><td class="c red">' + fmt(tR) + '</td><td class="num cost">' + money(tCost) + '</td><td class="num green">' + money(tSale) + '</td>' +
       '<td class="num">' + fmt(tLeft) + '</td></tr></tfoot></table></div>' +
       '<div class="pools">' +
       pool('blue', 'Painted ' + esc(k.part) + (k.colour ? ' · ' + esc(k.colour) : ''), kitOn, kitUsed,
@@ -504,7 +512,7 @@
     let done = 0, val = 0, total = 0;
     const rows = lines.map(l => {
       const f = lineFill(l), me = l === cur;
-      val += f.value; total += l.cost || 0;
+      val += f.cost; total += l.cost || 0;
       const filled = f.p + f.r;
       if (!f.left) done++;
       const st = !f.left ? '<span class="st full">Fulfilled</span>'
@@ -515,15 +523,15 @@
       return '<tr' + (me ? ' class="me"' : '') + '><td>' + esc(l.pn) + '</td><td title="' + esc(l.compDesc || '') + '">' + go + '</td>' +
         '<td>' + esc(l.kit) + (l.colour ? ' <span class="desc">· ' + esc(l.colour) + '</span>' : '') + '</td>' +
         '<td class="num">' + fmt(l.req) + '</td><td class="num blue">' + fmt(f.p) + '</td><td class="num red">' + fmt(f.r) + '</td>' +
-        '<td class="num green">' + money(f.value) + '</td><td>' + st + '</td></tr>';
+        '<td class="num cost">' + money(f.cost) + '</td>' + saleCell(f.sale, 'green') + '<td>' + st + '</td></tr>';
     }).join('');
     return '<div class="ohead"><span>Order <b>' + esc(cur.order) + '</b></span>' +
       (cur.cust ? '<span>Customer <b>' + esc(cur.cust) + '</b></span>' : '') +
       (cur.date ? '<span>Ordered <b>' + esc(cur.date) + '</b></span>' : '') +
       '<span><b>' + done + ' of ' + lines.length + '</b> lines fulfilled</span>' +
-      '<span>Allocated <b class="green">' + money(val) + '</b> of <b>' + money(total) + '</b></span></div>' +
+      '<span>Avg cost allocated <b>' + money(val) + '</b> of <b>' + money(total) + '</b></span></div>' +
       '<div class="tablewrap"><table class="otable"><thead><tr><th>Part</th><th>Component</th><th>Kit</th>' +
-      '<th class="num">Req</th><th class="num blue">Painted</th><th class="num red">Raw</th><th class="num green">Value</th><th>Status</th></tr></thead>' +
+      '<th class="num">Req</th><th class="num blue">Painted</th><th class="num red">Raw</th><th class="num cost">Avg Cost</th><th class="num green">Sale Value</th><th>Status</th></tr></thead>' +
       '<tbody>' + rows + '</tbody></table></div>';
   }
 

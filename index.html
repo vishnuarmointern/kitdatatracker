@@ -9,12 +9,14 @@
 <title>Kit Tracker</title>
 <style>
   :root {
-    --bg: #f5f6f8; --card: #ffffff; --ink: #1b1f24; --muted: #66707c; --line: #e3e6ea;
-    --accent: #0f5bd8; --accent-soft: #e8f0fd; --row: #fafbfc; --danger: #c4312b;
+    --bg: #f5f6f8; --card: #ffffff; --ink: #1b1f24; --muted: #66707c; --line: #e3e6ea; --row: #fafbfc;
+    --accent: #2b3340; --on-accent: #ffffff; --danger: #c4312b; --ok: #2e7d4f;
+    --blue: #1764d6; --blue-soft: #e8f0fd; --red: #cf2e2e; --red-soft: #fdecec;
   }
   @media (prefers-color-scheme: dark) {
-    :root { --bg: #121417; --card: #1b1e23; --ink: #e9ecef; --muted: #9aa3ad; --line: #2c3138;
-            --accent: #6aa2ff; --accent-soft: #1e2a3d; --row: #20242a; --danger: #ff7b72; }
+    :root { --bg: #121417; --card: #1b1e23; --ink: #e9ecef; --muted: #9aa3ad; --line: #2c3138; --row: #20242a;
+            --accent: #dfe4ea; --on-accent: #15181c; --danger: #ff7b72; --ok: #5cc28a;
+            --blue: #6aa2ff; --blue-soft: #1c2a40; --red: #ff7676; --red-soft: #3a1f22; }
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink);
@@ -25,8 +27,8 @@
   #login { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
   .login-card { width: 100%; max-width: 360px; background: var(--card); border: 1px solid var(--line);
                 border-radius: 14px; padding: 28px; }
-  .lock { width: 40px; height: 40px; border-radius: 10px; background: var(--accent-soft); color: var(--accent);
-          display: grid; place-items: center; margin-bottom: 14px; }
+  .lock { width: 40px; height: 40px; border-radius: 10px; background: var(--row); color: var(--ink);
+          border: 1px solid var(--line); display: grid; place-items: center; margin-bottom: 14px; }
   h1 { font-size: 20px; margin: 0 0 4px; }
   .sub { color: var(--muted); margin: 0 0 20px; font-size: 14px; }
   label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 6px; }
@@ -34,45 +36,87 @@
           background: var(--bg); color: var(--ink); font: inherit; }
   input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
   .btn { width: 100%; margin-top: 18px; padding: 11px; border: 0; border-radius: 8px; background: var(--accent);
-         color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+         color: var(--on-accent); font: inherit; font-weight: 600; cursor: pointer; }
   .btn:disabled { opacity: .6; cursor: wait; }
   .err { color: var(--danger); font-size: 13px; min-height: 18px; margin-top: 10px; }
 
   /* App */
-  header { position: sticky; top: 0; z-index: 2; background: var(--card); border-bottom: 1px solid var(--line); }
-  .bar { max-width: 960px; margin: 0 auto; padding: 12px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  header { position: sticky; top: 0; z-index: 3; background: var(--card); border-bottom: 1px solid var(--line); }
+  .bar { max-width: 1040px; margin: 0 auto; padding: 12px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
   .bar h1 { font-size: 17px; margin: 0; flex: 1 1 auto; }
   .status { color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 6px; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: #2ea44f; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
   .dot.stale { background: #d29922; }
+  #saveState.bad { color: var(--danger); }
   .link { background: none; border: 1px solid var(--line); color: var(--ink); border-radius: 8px;
           padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
-  main { max-width: 960px; margin: 0 auto; padding: 16px; }
-  #search { margin-bottom: 14px; }
+  main { max-width: 1040px; margin: 0 auto; padding: 16px; }
+  #search { margin-bottom: 10px; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); margin: 0 0 12px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .sw { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .sw.blue { background: var(--blue); } .sw.red { background: var(--red); }
   .count { color: var(--muted); font-size: 13px; margin: 0 0 10px; }
 
   details { background: var(--card); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; }
   details details { border-radius: 8px; margin: 8px 0 0; background: var(--row); }
+  details details details { background: var(--card); }
   summary { list-style: none; cursor: pointer; padding: 12px 14px; display: flex; align-items: center; gap: 12px; }
   summary::-webkit-details-marker { display: none; }
   summary::before { content: ""; width: 7px; height: 7px; border-right: 2px solid var(--muted);
                     border-bottom: 2px solid var(--muted); transform: rotate(-45deg); transition: transform .15s; flex: none; }
   details[open] > summary::before { transform: rotate(45deg); }
+  .lvl { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
   .name { min-width: 0; flex: 1; }
   .part { font-weight: 650; font-variant-numeric: tabular-nums; word-break: break-word; }
   .desc { color: var(--muted); font-size: 13px; }
   .pill { flex: none; text-align: right; font-size: 12px; color: var(--muted); }
   .pill b { display: block; font-size: 16px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .pill .done { color: var(--ok); }
+  .chip { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted);
+          border: 1px solid var(--line); border-radius: 99px; padding: 1px 8px; margin-left: 6px; vertical-align: 1px; }
+  .chip i { width: 9px; height: 9px; border-radius: 50%; border: 1px solid var(--muted); display: inline-block; }
   .inner { padding: 0 12px 12px 30px; }
-  table { width: 100%; border-collapse: collapse; margin-top: 8px; background: var(--card);
-          border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-  th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+
+  .tablewrap { overflow-x: auto; margin-top: 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); }
+  table { width: 100%; border-collapse: collapse; min-width: 560px; }
+  th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; white-space: nowrap; }
   th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); background: var(--row); }
-  td:last-child, th:last-child { text-align: right; }
+  th.num, td.num { text-align: right; }
+  th.c, td.c { text-align: center; }
+  th.blue { color: var(--blue); } th.red { color: var(--red); }
   tr:last-child td { border-bottom: 0; }
   tfoot td { font-weight: 700; background: var(--row); }
+  td.blue { color: var(--blue); } td.red { color: var(--red); }
+  .left.zero { color: var(--ok); }
+
+  .step { display: inline-flex; align-items: center; border: 1px solid; border-radius: 8px; overflow: hidden; }
+  .step.blue { border-color: var(--blue); } .step.red { border-color: var(--red); }
+  .step button { width: 30px; height: 30px; border: 0; font: inherit; font-size: 17px; line-height: 1; cursor: pointer; }
+  .step.blue button { background: var(--blue-soft); color: var(--blue); }
+  .step.red button { background: var(--red-soft); color: var(--red); }
+  .step button:disabled { opacity: .35; cursor: not-allowed; }
+  .step input { width: 48px; height: 30px; border: 0; border-radius: 0; padding: 0 4px; text-align: center;
+                background: var(--card); font-weight: 650; -moz-appearance: textfield; }
+  .step.blue input { color: var(--blue); } .step.red input { color: var(--red); }
+  .step input::-webkit-outer-spin-button, .step input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .step input:focus { outline: none; box-shadow: inset 0 0 0 2px currentColor; }
+
+  .pools { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px; margin-top: 8px; }
+  .pool { border-radius: 8px; padding: 10px 12px; font-size: 13px; border: 1px solid; }
+  .pool.blue { background: var(--blue-soft); border-color: var(--blue); }
+  .pool.red { background: var(--red-soft); border-color: var(--red); }
+  .pool h4 { margin: 0 0 6px; font-size: 13px; }
+  .pool.blue h4 { color: var(--blue); } .pool.red h4 { color: var(--red); }
+  .pool dl { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; margin: 0; }
+  .pool dt { color: var(--muted); } .pool dd { margin: 0; text-align: right; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .pool .note { margin-top: 6px; color: var(--muted); font-size: 12px; }
+  .pool .warn { margin-top: 6px; color: var(--danger); font-weight: 600; font-size: 12px; }
+
   .empty { color: var(--muted); text-align: center; padding: 40px 0; }
-  @media (max-width: 520px) { .inner { padding-left: 14px; } .bar { gap: 8px; } }
+  #toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--accent); color: var(--on-accent);
+           padding: 10px 16px; border-radius: 8px; font-size: 14px; max-width: calc(100% - 32px); z-index: 5; }
+  @media (max-width: 560px) { .inner { padding-left: 12px; padding-right: 8px; } .bar { gap: 8px; } }
 </style>
 </head>
 <body>
@@ -98,25 +142,32 @@
 <section id="app" class="hidden">
   <header>
     <div class="bar">
-      <h1>Component Requirements</h1>
+      <h1>Kit Requirements</h1>
       <span class="status"><span class="dot" id="dot"></span><span id="updated">Loading…</span></span>
+      <span class="status" id="saveState"></span>
       <button class="link" id="refreshBtn" type="button">Refresh</button>
       <button class="link" id="logoutBtn" type="button">Sign out</button>
     </div>
   </header>
   <main>
-    <input id="search" type="search" placeholder="Search component, kit or order number…" autocomplete="off">
+    <input id="search" type="search" placeholder="Search part, component, kit or order number…" autocomplete="off">
+    <p class="legend">
+      <span><i class="sw blue"></i>Painted kit items on hand (per colour)</span>
+      <span><i class="sw red"></i>Raw components on hand (shared by all colours)</span>
+    </p>
     <p class="count" id="count"></p>
     <div id="list"></div>
   </main>
 </section>
+<div id="toast" class="hidden" role="status"></div>
 
 <script>
 (() => {
-  // ====== CONFIG: paste your Apps Script web app URL here ======
+  // ====== CONFIG ======
   const API_URL = 'https://script.google.com/macros/s/AKfycbylM1wj2LBLk3bDl3fndyolAc7-7zJ50wyXGSzTqv8to6nIsrggpNNFiBdwfyptsVp9/exec';
   const REFRESH_SECONDS = 60;
-  // =============================================================
+  const SAVE_DELAY_MS = 700;
+  // ====================
 
   const $ = id => document.getElementById(id);
   const store = {
@@ -125,19 +176,30 @@
     del: k => { try { sessionStorage.removeItem(k); } catch (e) {} }
   };
   let token = store.get('kt_token');
-  let data = [];
-  let timer = null;
+  let leaves = [], inv = { kits: {}, comps: {} }, alloc = {};
+  let pending = {};            // key -> qty, changed here but not yet saved
+  let saving = false, saveTimer = null, refreshTimer = null, needsRender = false;
   const openKeys = new Set();
 
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
   const fmt = n => Number(n).toLocaleString(undefined, { maximumFractionDigits: 2 });
+  const byNum = (a, b) => String(a).localeCompare(String(b), undefined, { numeric: true });
+  const pKey = (order, kit) => ['P', order, kit].join('|');
+  const rKey = (order, kit, comp) => ['R', order, kit, comp].join('|');
+  const q = k => alloc[k] || 0;
 
   async function api(payload) {
     // text/plain avoids a CORS preflight, which Apps Script doesn't support.
     const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                                       body: JSON.stringify(payload), redirect: 'follow', cache: 'no-store' });
+                                       body: JSON.stringify(payload), redirect: 'follow', cache: 'no-store', credentials: 'omit' });
     if (!res.ok) throw new Error('Network error ' + res.status);
     return res.json();
+  }
+
+  let toastTimer;
+  function toast(msg) {
+    $('toast').textContent = msg; $('toast').classList.remove('hidden');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').classList.add('hidden'), 3500);
   }
 
   // ---------- Login ----------
@@ -157,9 +219,9 @@
   });
 
   function showLogin(msg) {
-    clearInterval(timer); timer = null;
-    token = null; store.del('kt_token'); data = [];
-    $('list').innerHTML = '';
+    clearInterval(refreshTimer); refreshTimer = null; clearTimeout(saveTimer);
+    token = null; store.del('kt_token'); leaves = []; alloc = {}; pending = {};
+    $('list').innerHTML = ''; $('saveState').textContent = '';
     $('app').classList.add('hidden'); $('login').classList.remove('hidden');
     $('loginErr').textContent = msg || '';
     $('u').focus();
@@ -168,68 +230,265 @@
   function showApp() {
     $('login').classList.add('hidden'); $('app').classList.remove('hidden');
     load();
-    clearInterval(timer);
-    timer = setInterval(() => { if (!document.hidden) load(); }, REFRESH_SECONDS * 1000);
+    clearInterval(refreshTimer);
+    refreshTimer = setInterval(() => { if (!document.hidden) load(); }, REFRESH_SECONDS * 1000);
   }
 
-  $('logoutBtn').addEventListener('click', () => {
+  $('logoutBtn').addEventListener('click', async () => {
+    if (Object.keys(pending).length) await flush();
     if (token) api({ action: 'logout', token }).catch(() => {});
     showLogin();
   });
   $('refreshBtn').addEventListener('click', () => load());
   document.addEventListener('visibilitychange', () => { if (!document.hidden && token) load(); });
+  window.addEventListener('beforeunload', e => {
+    if (Object.keys(pending).length || saving) { e.preventDefault(); e.returnValue = ''; }
+  });
 
   // ---------- Data ----------
+  function applySnapshot(r) {
+    leaves = r.leaves || []; inv = r.inv || { kits: {}, comps: {} }; alloc = r.alloc || {};
+    Object.keys(pending).forEach(k => { pending[k] > 0 ? alloc[k] = pending[k] : delete alloc[k]; });
+    $('dot').classList.remove('stale');
+    $('updated').textContent = 'Updated ' + new Date(r.updated).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    safeRender();
+  }
+
   let loading = false;
   async function load() {
-    if (loading || !token) return;
+    if (loading || !token || saving || Object.keys(pending).length) return;
     loading = true;
     try {
       const r = await api({ action: 'data', token });
       if (!r.ok) { if (r.error === 'SESSION_EXPIRED') return showLogin('Your session expired. Please sign in again.'); throw new Error(r.error); }
-      data = r.components || [];
-      $('dot').classList.remove('stale');
-      $('updated').textContent = 'Updated ' + new Date(r.updated).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-      render();
+      applySnapshot(r);
     } catch (err) {
       $('dot').classList.add('stale');
       $('updated').textContent = 'Couldn’t refresh, retrying';
     } finally { loading = false; }
   }
 
-  $('search').addEventListener('input', render);
+  // ---------- Limits (same rules the server enforces) ----------
+  function maxFor(key) {
+    const p = key.split('|'), cur = q(key);
+    if (p[0] === 'P') {
+      const [, order, kit] = p;
+      const lines = leaves.filter(l => l.order === order && l.kit === kit);
+      if (!lines.length) return cur;
+      const req = Math.max(...lines.map(l => l.req));
+      const raw = Math.max(...lines.map(l => q(rKey(order, kit, l.comp))));
+      const used = paintedUsed(kit) - cur;
+      return Math.max(0, Math.min(req - raw, ((inv.kits[kit] || {}).onhand || 0) - used));
+    }
+    const [, order, kit, comp] = p;
+    const line = leaves.find(l => l.order === order && l.kit === kit && l.comp === comp);
+    if (!line) return cur;
+    const used = rawUsed(comp) - cur;
+    return Math.max(0, Math.min(line.req - q(pKey(order, kit)), ((inv.comps[comp] || {}).onhand || 0) - used));
+  }
+  function paintedUsed(kit) {
+    const orders = new Set(leaves.filter(l => l.kit === kit).map(l => l.order));
+    let s = 0; orders.forEach(o => { s += q(pKey(o, kit)); }); return s;
+  }
+  function rawUsed(comp) {
+    return leaves.filter(l => l.comp === comp).reduce((s, l) => s + q(rKey(l.order, l.kit, comp)), 0);
+  }
+
+  // ---------- Editing ----------
+  function setQty(key, want) {
+    want = Math.max(0, Math.floor(Number(want) || 0));
+    const cur = q(key);
+    let got = want;
+    if (want > cur) got = Math.min(want, Math.max(cur, maxFor(key)));
+    if (got < want) toast('Limited to ' + got + '. Not enough on hand, or the order is already filled.');
+    if (got === cur) { safeRender(true); return; }
+    got > 0 ? alloc[key] = got : delete alloc[key];
+    pending[key] = got;
+    $('saveState').classList.remove('bad'); $('saveState').textContent = 'Unsaved changes…';
+    safeRender(true);
+    clearTimeout(saveTimer); saveTimer = setTimeout(flush, SAVE_DELAY_MS);
+  }
+
+  async function flush() {
+    clearTimeout(saveTimer);
+    if (saving) { saveTimer = setTimeout(flush, 400); return; }
+    const keys = Object.keys(pending);
+    if (!keys.length) return;
+    const batch = keys.map(k => ({ key: k, qty: pending[k] }));
+    pending = {};
+    saving = true; $('saveState').textContent = 'Saving…';
+    try {
+      const r = await api({ action: 'save', token, changes: batch });
+      if (!r.ok) {
+        if (r.error === 'SESSION_EXPIRED') { saving = false; return showLogin('Your session expired. Sign in again, then redo your last change.'); }
+        throw new Error(r.error);
+      }
+      saving = false;
+      applySnapshot(r);
+      if (r.adjusted && r.adjusted.length) toast('Some amounts were reduced to match what is on hand.');
+      $('saveState').textContent = Object.keys(pending).length ? 'Unsaved changes…' : 'All changes saved';
+    } catch (err) {
+      saving = false;
+      batch.forEach(c => { if (!(c.key in pending)) pending[c.key] = c.qty; });
+      $('saveState').classList.add('bad'); $('saveState').textContent = 'Not saved, retrying…';
+      saveTimer = setTimeout(flush, 5000);
+    }
+  }
+
+  $('list').addEventListener('click', e => {
+    const b = e.target.closest('button[data-k]');
+    if (!b) return;
+    lastFocus = { k: b.dataset.k, c: b.dataset.c, d: b.dataset.d };
+    setQty(b.dataset.k, q(b.dataset.k) + Number(b.dataset.d));
+  });
+  $('list').addEventListener('change', e => {
+    const i = e.target.closest('input[data-k]');
+    if (!i) return;
+    lastFocus = null;
+    setQty(i.dataset.k, i.value);
+  });
+  $('list').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.matches('input[data-k]')) e.target.blur();
+  });
+  $('list').addEventListener('focusout', () => { setTimeout(() => { if (needsRender && !editing()) safeRender(); }, 0); });
+
+  // ---------- Rendering ----------
+  let lastFocus = null;
+  const editing = () => document.activeElement && document.activeElement.matches && document.activeElement.matches('#list input[data-k]');
+
+  function safeRender(force) {
+    if (!force && editing()) { needsRender = true; return; }
+    needsRender = false;
+    render();
+    if (lastFocus) {
+      const sel = 'button[data-k="' + CSS.escape(lastFocus.k) + '"][data-c="' + CSS.escape(lastFocus.c) + '"][data-d="' + lastFocus.d + '"]';
+      const el = $('list').querySelector(sel);
+      if (el && !el.disabled) el.focus({ preventScroll: true });
+      lastFocus = null;
+    }
+  }
+
+  $('search').addEventListener('input', () => safeRender(true));
+
+  function buildTree() {
+    const parts = {};
+    leaves.forEach(l => {
+      const p = parts[l.pn] || (parts[l.pn] = { part: l.pn, desc: l.pnDesc, comps: {} });
+      const c = p.comps[l.comp] || (p.comps[l.comp] = { part: l.comp, desc: l.compDesc, kits: {} });
+      const k = c.kits[l.kit] || (c.kits[l.kit] = { part: l.kit, desc: l.kitDesc, colour: l.colour, orders: [] });
+      k.orders.push(l);
+    });
+    return Object.values(parts).sort((a, b) => byNum(a.part, b.part)).map(p => {
+      p.comps = Object.values(p.comps).sort((a, b) => byNum(a.part, b.part)).map(c => {
+        c.kits = Object.values(c.kits).sort((a, b) => byNum(a.part, b.part)).map(k => {
+          k.orders.sort((a, b) => byNum(a.order, b.order));
+          k.req = k.orders.reduce((s, o) => s + o.req, 0);
+          k.left = k.orders.reduce((s, o) => s + Math.max(0, o.req - q(pKey(o.order, k.part)) - q(rKey(o.order, k.part, c.part))), 0);
+          return k;
+        });
+        c.req = c.kits.reduce((s, k) => s + k.req, 0);
+        c.left = c.kits.reduce((s, k) => s + k.left, 0);
+        return c;
+      });
+      p.req = p.comps.reduce((s, c) => s + c.req, 0);
+      p.left = p.comps.reduce((s, c) => s + c.left, 0);
+      return p;
+    });
+  }
+
+  const pill = (req, left, label) =>
+    '<span class="pill"><b>' + fmt(req) + '</b>' + label + ' · ' +
+    (left ? fmt(left) + ' to fill' : '<span class="done">filled</span>') + '</span>';
+  const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+  const det = (key, q, inner) => '<details data-key="' + esc(key) + '"' + (openKeys.has(key) || q ? ' open' : '') + '>' + inner + '</details>';
+
+  function stepper(key, comp, colour, value, max) {
+    return '<span class="step ' + colour + '">' +
+      '<button type="button" data-k="' + esc(key) + '" data-c="' + esc(comp) + '" data-d="-1" aria-label="Remove one"' + (value <= 0 ? ' disabled' : '') + '>−</button>' +
+      '<input type="number" inputmode="numeric" min="0" step="1" data-k="' + esc(key) + '" data-c="' + esc(comp) + '" value="' + value + '" aria-label="Quantity">' +
+      '<button type="button" data-k="' + esc(key) + '" data-c="' + esc(comp) + '" data-d="1" aria-label="Add one"' + (value >= max ? ' disabled' : '') + '>+</button></span>';
+  }
+
+  function ordersBlock(c, k) {
+    let tReq = 0, tP = 0, tR = 0, tLeft = 0;
+    const body = k.orders.map(o => {
+      const pk = pKey(o.order, k.part), rk = rKey(o.order, k.part, c.part);
+      const pv = q(pk), rv = q(rk), left = Math.max(0, o.req - pv - rv);
+      tReq += o.req; tP += pv; tR += rv; tLeft += left;
+      return '<tr><td>' + esc(o.order) + '</td><td class="num">' + fmt(o.req) + '</td>' +
+        '<td class="c">' + stepper(pk, c.part, 'blue', pv, maxFor(pk)) + '</td>' +
+        '<td class="c">' + stepper(rk, c.part, 'red', rv, maxFor(rk)) + '</td>' +
+        '<td class="num left' + (left ? '' : ' zero') + '">' + (left ? fmt(left) : '✓') + '</td></tr>';
+    }).join('');
+
+    const kitOn = (inv.kits[k.part] || {}).onhand || 0, kitUsed = paintedUsed(k.part);
+    const compOn = (inv.comps[c.part] || {}).onhand || 0, compUsed = rawUsed(c.part);
+    const otherKits = [...new Set(leaves.filter(l => l.comp === c.part && l.kit !== k.part).map(l => l.kit))].sort(byNum);
+    const kitComps = new Set(leaves.filter(l => l.kit === k.part).map(l => l.comp)).size;
+
+    const pool = (cls, title, on, used, extra) =>
+      '<div class="pool ' + cls + '"><h4>' + title + '</h4><dl>' +
+      '<dt>On hand</dt><dd>' + fmt(on) + '</dd><dt>Allocated (all orders)</dt><dd>' + fmt(used) + '</dd>' +
+      '<dt>Available</dt><dd>' + fmt(Math.max(0, on - used)) + '</dd></dl>' + extra +
+      (used > on ? '<div class="warn">Over-allocated by ' + fmt(used - on) + '. On hand dropped in the sheet. Remove some to fix.</div>' : '') + '</div>';
+
+    return '<div class="tablewrap"><table><thead><tr><th>Order number</th><th class="num">Qty required</th>' +
+      '<th class="c blue">Painted</th><th class="c red">Raw</th><th class="num">Still needed</th></tr></thead>' +
+      '<tbody>' + body + '</tbody><tfoot><tr><td>Total</td><td class="num">' + fmt(tReq) + '</td>' +
+      '<td class="c blue">' + fmt(tP) + '</td><td class="c red">' + fmt(tR) + '</td><td class="num">' + fmt(tLeft) + '</td></tr></tfoot></table></div>' +
+      '<div class="pools">' +
+      pool('blue', 'Painted ' + esc(k.part) + (k.colour ? ' · ' + esc(k.colour) : ''), kitOn, kitUsed,
+           kitComps > 1 ? '<div class="note">This kit has ' + kitComps + ' components. One painted kit covers the order under each of them.</div>' : '') +
+      pool('red', 'Raw ' + esc(c.part), compOn, compUsed,
+           otherKits.length ? '<div class="note">Shared with ' + otherKits.map(esc).join(', ') + '</div>' : '') +
+      '</div>';
+  }
 
   function render() {
-    const q = $('search').value.trim().toLowerCase();
-    const match = s => s.toLowerCase().includes(q);
-    const rows = !q ? data : data.filter(c =>
-      match(c.part) || match(c.desc) ||
-      c.kits.some(k => match(k.part) || match(k.desc) || k.orders.some(o => match(o.order))));
+    const s = $('search').value.trim().toLowerCase();
+    const m = v => String(v || '').toLowerCase().includes(s);
+    let tree = buildTree();
+    if (s) {
+      tree = tree.map(p => {
+        if (m(p.part) || m(p.desc)) return p;
+        const comps = p.comps.map(c => {
+          if (m(c.part) || m(c.desc)) return c;
+          const kits = c.kits.filter(k => m(k.part) || m(k.desc) || k.orders.some(o => m(o.order)));
+          return kits.length ? Object.assign({}, c, { kits }) : null;
+        }).filter(Boolean);
+        return comps.length ? Object.assign({}, p, { comps }) : null;
+      }).filter(Boolean);
+    }
 
-    $('count').textContent = rows.length + ' component' + (rows.length === 1 ? '' : 's');
-    if (!rows.length) { $('list').innerHTML = '<p class="empty">' + (data.length ? 'No matches.' : 'No open requirements.') + '</p>'; return; }
+    $('count').textContent = plural(tree.length, 'part');
+    if (!tree.length) { $('list').innerHTML = '<p class="empty">' + (leaves.length ? 'No matches.' : 'No open requirements.') + '</p>'; return; }
 
-    $('list').innerHTML = rows.map(c => {
-      const ck = 'c:' + c.part;
-      const kits = c.kits.map(k => {
-        const kk = ck + '|k:' + k.part;
-        const body = k.orders.map(o => '<tr><td>' + esc(o.order) + '</td><td>' + fmt(o.qty) + '</td></tr>').join('');
-        return '<details data-key="' + esc(kk) + '"' + (openKeys.has(kk) || q ? ' open' : '') + '>' +
-          '<summary><span class="name"><div class="part">' + esc(k.part) + '</div>' +
-          (k.desc ? '<div class="desc">' + esc(k.desc) + '</div>' : '') + '</span>' +
-          '<span class="pill"><b>' + fmt(k.total) + '</b>' + k.orders.length + ' order' + (k.orders.length === 1 ? '' : 's') + '</span></summary>' +
-          '<div class="inner"><table><thead><tr><th>Order number</th><th>Quantity required</th></tr></thead>' +
-          '<tbody>' + body + '</tbody><tfoot><tr><td>Total</td><td>' + fmt(k.total) + '</td></tr></tfoot></table></div></details>';
+    $('list').innerHTML = tree.map(p => {
+      const pk = 'p:' + p.part;
+      const comps = p.comps.map(c => {
+        const ck = pk + '|c:' + c.part;
+        const kits = c.kits.map(k => {
+          const kk = ck + '|k:' + k.part;
+          return det(kk, s,
+            '<summary><span class="name"><div class="lvl">Kit</div><div class="part">' + esc(k.part) +
+            (k.colour ? '<span class="chip"><i style="background:' + (/white/i.test(k.colour) ? '#fff' : /black/i.test(k.colour) ? '#111' : 'transparent') + '"></i>' + esc(k.colour) + '</span>' : '') +
+            '</div>' + (k.desc ? '<div class="desc">' + esc(k.desc) + '</div>' : '') + '</span>' +
+            pill(k.req, k.left, plural(k.orders.length, 'order')) + '</summary>' +
+            '<div class="inner">' + ordersBlock(c, k) + '</div>');
+        }).join('');
+        return det(ck, s,
+          '<summary><span class="name"><div class="lvl">Component</div><div class="part">' + esc(c.part) + '</div>' +
+          (c.desc ? '<div class="desc">' + esc(c.desc) + '</div>' : '') + '</span>' +
+          pill(c.req, c.left, plural(c.kits.length, 'kit')) + '</summary><div class="inner">' + kits + '</div>');
       }).join('');
-      return '<details data-key="' + esc(ck) + '"' + (openKeys.has(ck) || q ? ' open' : '') + '>' +
-        '<summary><span class="name"><div class="part">' + esc(c.part) + '</div>' +
-        (c.desc ? '<div class="desc">' + esc(c.desc) + '</div>' : '') + '</span>' +
-        '<span class="pill"><b>' + fmt(c.total) + '</b>' + c.kits.length + ' kit' + (c.kits.length === 1 ? '' : 's') + '</span></summary>' +
-        '<div class="inner">' + kits + '</div></details>';
+      return det(pk, s,
+        '<summary><span class="name"><div class="lvl">Part</div><div class="part">' + esc(p.part) + '</div>' +
+        (p.desc ? '<div class="desc">' + esc(p.desc) + '</div>' : '') + '</span>' +
+        pill(p.req, p.left, plural(p.comps.length, 'component')) + '</summary><div class="inner">' + comps + '</div>');
     }).join('');
   }
 
-  // Remember which buttons are open so auto-refresh doesn't collapse them.
+  // Remember which buttons are open so refreshes don't collapse them.
   $('list').addEventListener('toggle', e => {
     const key = e.target.dataset && e.target.dataset.key;
     if (!key || $('search').value.trim()) return;

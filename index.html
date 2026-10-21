@@ -137,6 +137,10 @@
   .ohead + .tablewrap { margin-top: 8px; }
   .otable th, .otable td { padding: 6px 10px; font-size: 13px; }
   .otable tr.me td { background: var(--row); }
+  .otable tr.grp td { background: var(--row); border-top: 2px solid var(--line); vertical-align: top; }
+  .otable tr.grp td b { font-size: 14px; }
+  .otable tr.grp .desc { font-size: 11px; font-weight: 400; }
+  .otable tr.sub td:nth-child(2) { padding-left: 22px; }
   .go { background: none; border: 0; padding: 0; font: inherit; color: var(--ink); text-decoration: underline;
         text-underline-offset: 2px; cursor: pointer; text-align: left; font-weight: 600; }
   .st { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 99px; }
@@ -593,33 +597,73 @@
 
   // Everything else on the same order, wherever it sits in the tree.
   function orderDetail(cur, markLine) {
-    const lines = leaves.filter(l => l.order === cur.order)
-      .sort((a, b) => byNum(a.pn, b.pn) || byNum(a.comp, b.comp) || byNum(a.kit, b.kit));
-    let done = 0, val = 0, total = 0;
-    const rows = lines.map(l => {
-      const f = lineFill(l), me = markLine && l === cur;
-      val += f.cost; total += l.cost || 0;
-      const filled = f.p + f.r;
-      if (!f.left) done++;
-      const st = !f.left ? '<span class="st full">Fulfilled</span>'
-               : filled ? '<span class="st part">Partial · ' + fmt(filled) + '/' + fmt(l.req) + '</span>'
-               : '<span class="st none">Not started</span>';
-      const go = me ? '<b>' + esc(l.comp) + '</b> <span class="desc">(this line)</span>'
-               : '<button type="button" class="go" data-go="' + esc(JSON.stringify([l.pn, l.comp, l.kit, l.order])) + '">' + esc(l.comp) + '</button>';
-      return '<tr' + (me ? ' class="me"' : '') + '><td>' + esc(l.pn) + '</td><td title="' + esc(l.compDesc || '') + '">' + go + '</td>' +
-        '<td>' + esc(l.kit) + (l.colour ? ' <span class="desc">· ' + esc(l.colour) + '</span>' : '') + '</td>' +
-        '<td class="num">' + fmt(l.req) + '</td><td class="num blue">' + fmt(f.p) + '</td><td class="num red">' + fmt(f.r) + '</td>' +
-        '<td class="num cost">' + money(f.cost) + '</td>' + saleCell(f.sale, 'green') + '<td>' + st + '</td></tr>';
+    const lines = leaves.filter(l => l.order === cur.order);
+    const parts = {};
+    lines.forEach(l => (parts[l.pn] || (parts[l.pn] = [])).push(l));
+    let doneLines = 0, costAll = 0, costTotal = 0, saleAll = 0, salePriced = false;
+
+    const body = Object.keys(parts).sort(byNum).map(pn => {
+      const group = parts[pn].sort((a, b) => byNum(a.comp, b.comp) || byNum(a.kit, b.kit));
+      const first = group[0];
+      const fills = group.map(lineFill);
+      const paintedKeys = {};
+      let raw = 0, cost = 0, reqSum = 0, done = 0, any = false;
+      group.forEach((l, i) => {
+        const f = fills[i];
+        paintedKeys[pKey(l.order, l.kit)] = f.p;
+        raw += f.r; cost += f.cost; reqSum += l.req; costTotal += l.cost || 0;
+        if (!f.left) done++;
+        if (f.p + f.r > 0) any = true;
+      });
+      const painted = Object.values(paintedKeys).reduce((a, b) => a + b, 0);
+      // Complete units of this part = the smallest number any one component can support.
+      const ordered = first.oqty;
+      let units = null;
+      if (ordered) {
+        units = Math.min(ordered, ...group.map((l, i) => {
+          const per = l.req / ordered;
+          return per > 0 ? Math.floor((fills[i].p + fills[i].r) / per + 1e-9) : ordered;
+        }));
+      }
+      const sale = first.price != null && units != null ? first.price * units : null;
+      if (sale != null) { saleAll += sale; salePriced = true; }
+      costAll += cost; doneLines += done;
+
+      const head = '<tr class="grp"><td colspan="3"><b>' + esc(pn) + '</b>' +
+        (first.pnDesc ? '<div class="desc">' + esc(first.pnDesc) + '</div>' : '') + '</td>' +
+        '<td class="num">' + (ordered ? fmt(ordered) + '<div class="desc">units</div>' : fmt(reqSum)) + '</td>' +
+        '<td class="num blue">' + fmt(painted) + '</td><td class="num red">' + fmt(raw) + '</td>' +
+        '<td class="num cost">' + money(cost) + '</td>' +
+        '<td class="num green">' + (sale == null ? '<span class="na" title="No sale price or unit count for this part">—</span>'
+          : money(sale) + '<div class="desc">' + fmt(units) + ' of ' + fmt(ordered) + ' units</div>') + '</td>' +
+        '<td>' + statusChip(done, group.length, any) + '</td></tr>';
+
+      const rows = group.map((l, i) => {
+        const f = fills[i], me = markLine && l === cur;
+        const st = !f.left ? '<span class="st full">Fulfilled</span>'
+                 : f.p + f.r ? '<span class="st part">Partial · ' + fmt(f.p + f.r) + '/' + fmt(l.req) + '</span>'
+                 : '<span class="st none">Not started</span>';
+        const go = me ? '<b>' + esc(l.comp) + '</b> <span class="desc">(this line)</span>'
+                 : '<button type="button" class="go" data-go="' + esc(JSON.stringify([l.pn, l.comp, l.kit, l.order])) + '">' + esc(l.comp) + '</button>';
+        return '<tr class="sub' + (me ? ' me' : '') + '"><td></td><td title="' + esc(l.compDesc || '') + '">' + go + '</td>' +
+          '<td>' + esc(l.kit) + (l.colour ? ' <span class="desc">· ' + esc(l.colour) + '</span>' : '') + '</td>' +
+          '<td class="num">' + fmt(l.req) + '</td><td class="num blue">' + fmt(f.p) + '</td><td class="num red">' + fmt(f.r) + '</td>' +
+          '<td class="num cost">' + money(f.cost) + '</td><td></td><td>' + st + '</td></tr>';
+      }).join('');
+      return head + rows;
     }).join('');
+
     return '<div class="ohead"><span>Order <b>' + esc(cur.order) + '</b></span>' +
       (cur.cust ? '<span>Customer <b>' + esc(cur.cust) + '</b></span>' : '') +
       (cur.date ? '<span>Ordered <b>' + esc(cur.date) + '</b></span>' : '') +
-      '<span><b>' + done + ' of ' + lines.length + '</b> lines fulfilled</span>' +
-      '<span>Avg cost allocated <b>' + money(val) + '</b> of <b>' + money(total) + '</b></span></div>' +
+      '<span><b>' + doneLines + ' of ' + lines.length + '</b> lines fulfilled</span>' +
+      '<span>Avg cost <b>' + money(costAll) + '</b> of <b>' + money(costTotal) + '</b></span>' +
+      (salePriced ? '<span>Sale value <b class="green">' + money(saleAll) + '</b></span>' : '') + '</div>' +
       '<div class="tablewrap"><table class="otable"><thead><tr><th>Part</th><th>Component</th><th>Kit</th>' +
       '<th class="num">Req</th><th class="num blue">Painted</th><th class="num red">Raw</th><th class="num cost">Avg Cost</th><th class="num green">Sale Value</th><th>Status</th></tr></thead>' +
-      '<tbody>' + rows + '</tbody></table></div>';
+      '<tbody>' + body + '</tbody></table></div>';
   }
+
 
   const statusChip = (done, total, any) => done === total ? '<span class="st full">Fulfilled</span>'
     : any ? '<span class="st part">Partial</span>' : '<span class="st none">Not started</span>';

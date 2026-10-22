@@ -9,173 +9,225 @@
 <title>Kit Tracker</title>
 <style>
   :root {
-    --bg: #f5f6f8; --card: #ffffff; --ink: #1b1f24; --muted: #66707c; --line: #e3e6ea; --row: #fafbfc;
-    --accent: #2b3340; --on-accent: #ffffff; --danger: #c4312b; --ok: #2e7d4f;
-    --blue: #1764d6; --blue-soft: #e8f0fd; --red: #cf2e2e; --red-soft: #fdecec;
-    --green: #1f7a45; --green-soft: #e6f4ec; --amber: #9a6200; --amber-soft: #fdf3dc;
+    --bg: #f3f4f6; --card: #ffffff; --ink: #111827; --ink-2: #374151; --muted: #6b7280; --line: #e5e7eb; --row: #f9fafb;
+    --accent: #1f2937; --on-accent: #ffffff; --focus: #2563eb;
+    --blue: #1d4ed8; --blue-soft: #eff4ff; --red: #c62828; --red-soft: #fdeeee;
+    --green: #15803d; --green-soft: #e9f7ee; --amber: #a15c00; --amber-soft: #fff4dd; --grey-soft: #f1f2f4;
+    --shadow: 0 1px 2px rgba(16,24,40,.05), 0 1px 3px rgba(16,24,40,.04);
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   }
   @media (prefers-color-scheme: dark) {
-    :root { --bg: #121417; --card: #1b1e23; --ink: #e9ecef; --muted: #9aa3ad; --line: #2c3138; --row: #20242a;
-            --accent: #dfe4ea; --on-accent: #15181c; --danger: #ff7b72; --ok: #5cc28a;
-            --blue: #6aa2ff; --blue-soft: #1c2a40; --red: #ff7676; --red-soft: #3a1f22;
-            --green: #5cc28a; --green-soft: #17301f; --amber: #e3b341; --amber-soft: #352a12; }
+    :root { --bg: #0f1115; --card: #171a20; --ink: #eef0f3; --ink-2: #cfd4db; --muted: #9aa3ad; --line: #2a2f37; --row: #1c2027;
+            --accent: #e5e7eb; --on-accent: #111827; --focus: #7aa2ff;
+            --blue: #7aa2ff; --blue-soft: #1a2540; --red: #ff7b7b; --red-soft: #3a1d20;
+            --green: #5fd08f; --green-soft: #15301f; --amber: #f0b44c; --amber-soft: #352812; --grey-soft: #23272e;
+            --shadow: none; }
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink);
-         font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+         font: 14.5px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
   .hidden { display: none !important; }
+  button { font: inherit; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
-  /* Login */
+  /* ---------- Login ---------- */
   #login { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
   .login-card { width: 100%; max-width: 360px; background: var(--card); border: 1px solid var(--line);
-                border-radius: 14px; padding: 28px; }
-  .lock { width: 40px; height: 40px; border-radius: 10px; background: var(--row); color: var(--ink);
+                border-radius: 16px; padding: 28px; box-shadow: var(--shadow); }
+  .lock { width: 42px; height: 42px; border-radius: 12px; background: var(--row); color: var(--ink);
           border: 1px solid var(--line); display: grid; place-items: center; margin-bottom: 14px; }
-  h1 { font-size: 20px; margin: 0 0 4px; }
+  .login-card h1 { font-size: 20px; margin: 0 0 4px; }
   .sub { color: var(--muted); margin: 0 0 20px; font-size: 14px; }
   label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 6px; }
-  input { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
-          background: var(--bg); color: var(--ink); font: inherit; }
-  input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
-  .btn { width: 100%; margin-top: 18px; padding: 11px; border: 0; border-radius: 8px; background: var(--accent);
-         color: var(--on-accent); font: inherit; font-weight: 600; cursor: pointer; }
+  input { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px;
+          background: var(--card); color: var(--ink); font: inherit; }
+  input:focus { outline: 2px solid var(--focus); outline-offset: 0; border-color: transparent; }
+  .btn { width: 100%; margin-top: 18px; padding: 11px; border: 0; border-radius: 10px; background: var(--accent);
+         color: var(--on-accent); font-weight: 600; cursor: pointer; }
   .btn:disabled { opacity: .6; cursor: wait; }
-  .err { color: var(--danger); font-size: 13px; min-height: 18px; margin-top: 10px; }
-  #salesWarn { min-height: 0; margin: 0 0 8px; }
+  .err { color: var(--red); font-size: 13px; min-height: 18px; margin-top: 10px; }
+
+  /* ---------- Header ---------- */
+  header { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--card) 92%, transparent);
+           backdrop-filter: saturate(1.4) blur(8px); border-bottom: 1px solid var(--line); }
+  .bar { max-width: 1120px; margin: 0 auto; padding: 10px 16px; display: flex; gap: 10px 16px; align-items: center; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 10px; margin-right: auto; }
+  .brand-mark { width: 30px; height: 30px; border-radius: 8px; background: var(--accent); color: var(--on-accent);
+                display: grid; place-items: center; flex: none; }
+  .brand b { font-size: 15px; display: block; line-height: 1.2; }
+  .brand small { color: var(--muted); font-size: 12px; display: flex; align-items: center; gap: 6px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); display: inline-block; }
+  .dot.stale { background: var(--amber); }
+  #saveState.bad { color: var(--red); }
+  .tabs { display: inline-flex; background: var(--row); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 2px; }
+  .tab { border: 0; background: none; color: var(--muted); padding: 6px 14px; border-radius: 7px; font-weight: 600; cursor: pointer; font-size: 13.5px; }
+  .tab[aria-selected="true"] { background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
+  .tab span { font-weight: 500; color: var(--muted); margin-left: 4px; }
+  .actions { display: flex; gap: 8px; }
+  .link { background: var(--card); border: 1px solid var(--line); color: var(--ink); border-radius: 9px;
+          padding: 6px 12px; font-size: 13px; cursor: pointer; font-weight: 500; }
+  .link:hover { border-color: var(--muted); }
+  .link.fill { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600; }
+  .link:disabled { opacity: .6; cursor: wait; }
+
+  main { max-width: 1120px; margin: 0 auto; padding: 18px 16px 60px; }
+  .toolbar { display: flex; gap: 10px 16px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  .searchbox { position: relative; flex: 1 1 320px; }
+  .searchbox svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+  .searchbox input { padding-left: 36px; box-shadow: var(--shadow); }
+  .legend { display: flex; gap: 6px 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .sw { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
+  .sw.blue { background: var(--blue); } .sw.red { background: var(--red); }
+  .count { color: var(--muted); font-size: 12.5px; margin: 0 0 10px; }
+  #salesWarn { margin: 0 0 10px; min-height: 0; }
   #salesWarn:empty { display: none; }
 
-  /* App */
-  header { position: sticky; top: 0; z-index: 3; background: var(--card); border-bottom: 1px solid var(--line); }
-  .bar { max-width: 1040px; margin: 0 auto; padding: 12px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-  .bar h1 { font-size: 17px; margin: 0; flex: 1 1 auto; }
-  .status { color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 6px; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
-  .dot.stale { background: #d29922; }
-  #saveState.bad { color: var(--danger); }
-  .link { background: none; border: 1px solid var(--line); color: var(--ink); border-radius: 8px;
-          padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
-  main { max-width: 1040px; margin: 0 auto; padding: 16px; }
-  #search { margin-bottom: 10px; }
-  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); margin: 0 0 12px; }
-  .legend span { display: inline-flex; align-items: center; gap: 6px; }
-  .sw { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
-  .sw.blue { background: var(--blue); } .sw.red { background: var(--red); }
-  .count { color: var(--muted); font-size: 13px; margin: 0 0 10px; }
+  .confirm { display: flex; gap: 12px 20px; align-items: center; justify-content: space-between; flex-wrap: wrap;
+             background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 12px;
+             padding: 14px 16px; margin-bottom: 14px; box-shadow: var(--shadow); }
+  .confirm p { margin: 4px 0 0; color: var(--muted); font-size: 13px; max-width: 660px; }
+  .confirm-actions { display: flex; gap: 8px; }
 
-  details { background: var(--card); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; }
-  details details { border-radius: 8px; margin: 8px 0 0; background: var(--row); }
+  /* ---------- Status chips ---------- */
+  .st { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 2px 9px 2px 8px;
+        border-radius: 99px; white-space: nowrap; line-height: 18px; }
+  .st::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .st.full { color: var(--green); background: var(--green-soft); }
+  .st.raw { color: var(--amber); background: var(--amber-soft); }
+  .st.missing { color: var(--red); background: var(--red-soft); }
+  .st.open { color: var(--muted); background: var(--grey-soft); }
+  .st b { font-weight: 700; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+  /* ---------- Cards / dropdowns ---------- */
+  details { background: var(--card); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 10px; }
+  #list > details { box-shadow: var(--shadow); }
+  details details { border-radius: 10px; margin: 8px 0 0; background: var(--row); }
   details details details { background: var(--card); }
-  summary { list-style: none; cursor: pointer; padding: 12px 14px; display: flex; align-items: center; gap: 12px; }
+  summary { list-style: none; cursor: pointer; padding: 14px 16px; display: flex; align-items: center; gap: 14px; border-radius: 12px; }
+  summary:hover { background: color-mix(in srgb, var(--row) 60%, transparent); }
   summary::-webkit-details-marker { display: none; }
   summary::before { content: ""; width: 7px; height: 7px; border-right: 2px solid var(--muted);
                     border-bottom: 2px solid var(--muted); transform: rotate(-45deg); transition: transform .15s; flex: none; }
   details[open] > summary::before { transform: rotate(45deg); }
-  .lvl { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  .lvl { font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 600; }
   .name { min-width: 0; flex: 1; }
-  .part { font-weight: 650; font-variant-numeric: tabular-nums; word-break: break-word; }
-  .desc { color: var(--muted); font-size: 13px; }
+  .part { font-weight: 650; font-variant-numeric: tabular-nums; word-break: break-word; font-size: 15px; }
+  details details .part { font-size: 14px; }
+  .desc { color: var(--muted); font-size: 12.5px; }
   .pill { flex: none; text-align: right; font-size: 12px; color: var(--muted); }
-  .pill b { display: block; font-size: 16px; color: var(--ink); font-variant-numeric: tabular-nums; }
-  .pill .done { color: var(--ok); }
-  .chip { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted);
-          border: 1px solid var(--line); border-radius: 99px; padding: 1px 8px; margin-left: 6px; vertical-align: 1px; }
+  .pill b { display: block; font-size: 17px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .pill .done { color: var(--green); font-weight: 600; }
+  .chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--muted);
+          border: 1px solid var(--line); border-radius: 99px; padding: 0 8px; margin-left: 8px; vertical-align: 2px; font-weight: 500; }
   .chip i { width: 9px; height: 9px; border-radius: 50%; border: 1px solid var(--muted); display: inline-block; }
-  .inner { padding: 0 12px 12px 30px; }
+  .inner { padding: 0 14px 14px 34px; }
+  .vall { margin-top: 10px; display: inline-flex; align-items: center; gap: 6px; background: var(--card); color: var(--ink);
+          border: 1px solid var(--line); border-radius: 8px; padding: 5px 11px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+  .vall:hover { border-color: var(--muted); }
+  .vall[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  .vall span { font-weight: 400; opacity: .75; }
+  .allorders { border: 1px dashed var(--line); border-radius: 12px; padding: 12px; margin: 0 0 10px; background: var(--card); }
+  .allorders-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 0 2px 2px; }
 
-  .tablewrap { overflow-x: auto; margin-top: 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); }
-  table { width: 100%; border-collapse: collapse; min-width: 780px; }
-  th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; white-space: nowrap; }
-  th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); background: var(--row); }
+  /* ---------- Tables ---------- */
+  .tablewrap { overflow-x: auto; margin-top: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
+  table { width: 100%; border-collapse: collapse; min-width: 860px; }
+  th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  th { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); background: var(--row); font-weight: 600; }
   th.num, td.num { text-align: right; }
   th.c, td.c { text-align: center; }
-  th.blue { color: var(--blue); } th.red { color: var(--red); }
-  tr:last-child td { border-bottom: 0; }
-  tfoot td { font-weight: 700; background: var(--row); }
-  td.blue { color: var(--blue); } td.red { color: var(--red); }
-  .left.zero { color: var(--ok); }
+  th.blue, td.blue { color: var(--blue); } th.red, td.red { color: var(--red); }
+  td.green, th.green { color: var(--green); } td.green { font-weight: 650; }
+  td.cost, th.cost { color: var(--muted); }
+  tbody tr:last-child td { border-bottom: 0; }
+  tfoot td { font-weight: 700; background: var(--row); border-top: 1px solid var(--line); border-bottom: 0; }
+  .na { color: var(--muted); font-weight: 400; }
 
-  .step { display: inline-flex; align-items: center; border: 1px solid; border-radius: 8px; overflow: hidden; }
+  .step { display: inline-flex; align-items: center; border: 1px solid; border-radius: 9px; overflow: hidden; }
   .step.blue { border-color: var(--blue); } .step.red { border-color: var(--red); }
-  .step button { width: 30px; height: 30px; border: 0; font: inherit; font-size: 17px; line-height: 1; cursor: pointer; }
+  .step button { width: 30px; height: 30px; border: 0; font-size: 17px; line-height: 1; cursor: pointer; }
   .step.blue button { background: var(--blue-soft); color: var(--blue); }
   .step.red button { background: var(--red-soft); color: var(--red); }
   .step button:disabled { opacity: .35; cursor: not-allowed; }
-  .step input { width: 48px; height: 30px; border: 0; border-radius: 0; padding: 0 4px; text-align: center;
+  .step input { width: 46px; height: 30px; border: 0; border-radius: 0; padding: 0 4px; text-align: center;
                 background: var(--card); font-weight: 650; -moz-appearance: textfield; }
   .step.blue input { color: var(--blue); } .step.red input { color: var(--red); }
   .step input::-webkit-outer-spin-button, .step input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   .step input:focus { outline: none; box-shadow: inset 0 0 0 2px currentColor; }
 
-  .pools { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px; margin-top: 8px; }
-  .pool { border-radius: 8px; padding: 10px 12px; font-size: 13px; border: 1px solid; }
-  .pool.blue { background: var(--blue-soft); border-color: var(--blue); }
-  .pool.red { background: var(--red-soft); border-color: var(--red); }
+  .pools { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-top: 10px; }
+  .pool { border-radius: 10px; padding: 11px 13px; font-size: 13px; border: 1px solid; }
+  .pool.blue { background: var(--blue-soft); border-color: color-mix(in srgb, var(--blue) 45%, transparent); }
+  .pool.red { background: var(--red-soft); border-color: color-mix(in srgb, var(--red) 45%, transparent); }
   .pool h4 { margin: 0 0 6px; font-size: 13px; }
   .pool.blue h4 { color: var(--blue); } .pool.red h4 { color: var(--red); }
   .pool dl { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; margin: 0; }
   .pool dt { color: var(--muted); } .pool dd { margin: 0; text-align: right; font-weight: 650; font-variant-numeric: tabular-nums; }
   .pool .note { margin-top: 6px; color: var(--muted); font-size: 12px; }
-  .pool .warn { margin-top: 6px; color: var(--danger); font-weight: 600; font-size: 12px; }
+  .pool .warn { margin-top: 6px; color: var(--red); font-weight: 600; font-size: 12px; }
 
-  td.green, th.green { color: var(--green); } td.green { font-weight: 650; }
-  td.cost, th.cost { color: var(--muted); }
-  .na { color: var(--muted); font-weight: 400; }
-
-  /* Order breakdown */
+  /* order toggle inside kit tables */
   .otog { display: inline-flex; align-items: center; gap: 8px; background: none; border: 0; padding: 0; color: var(--ink);
-          font: inherit; font-weight: 650; cursor: pointer; text-align: left; }
+          font-weight: 650; cursor: pointer; text-align: left; }
   .otog::before { content: ""; width: 6px; height: 6px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted);
                   transform: rotate(-45deg); transition: transform .15s; flex: none; }
   .otog[aria-expanded="true"]::before { transform: rotate(45deg); }
   .otog small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
-  tr.detail > td { background: var(--row); padding: 10px 12px 14px; white-space: normal; }
+  tr.detail > td { background: var(--row); padding: 12px 12px 16px; white-space: normal; }
   .dwrap { width: 0; min-width: 100%; }
-  .ohead { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 13px; color: var(--muted); }
+
+  /* ---------- Order view ---------- */
+  .ohead { display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center; font-size: 13px; color: var(--muted); }
   .ohead b { color: var(--ink); }
   .ohead b.green { color: var(--green); }
-  .otable { min-width: 640px; }
-  .ohead + .tablewrap { margin-top: 8px; }
-  .otable th, .otable td { padding: 6px 10px; font-size: 13px; }
-  .otable tr.me td { background: var(--row); }
-  .otable tr.grp td { background: var(--row); border-top: 2px solid var(--line); vertical-align: top; }
+  .otable { min-width: 760px; }
+  .otable th, .otable td { padding: 7px 10px; font-size: 13px; }
+  .otable tr.grp td { background: var(--row); border-top: 1px solid var(--line); vertical-align: top; padding-top: 10px; padding-bottom: 10px; }
+  .otable tbody tr.grp:first-child td { border-top: 0; }
   .otable tr.grp td b { font-size: 14px; }
-  .otable tr.grp .desc { font-size: 11px; font-weight: 400; }
-  .otable tr.sub td:nth-child(2) { padding-left: 22px; }
-  .go { background: none; border: 0; padding: 0; font: inherit; color: var(--ink); text-decoration: underline;
-        text-underline-offset: 2px; cursor: pointer; text-align: left; font-weight: 600; }
-  .st { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 99px; }
-  .st.full { color: var(--green); background: var(--green-soft); }
-  .st.part { color: var(--amber); background: var(--amber-soft); }
-  .st.none { color: var(--muted); background: var(--row); border: 1px solid var(--line); }
+  .otable tr.grp .desc { font-size: 11.5px; font-weight: 400; }
+  .otable tr.sub td:nth-child(2) { padding-left: 24px; }
+  .otable tr.me td { background: color-mix(in srgb, var(--blue-soft) 70%, transparent); }
+  .go { background: none; border: 0; padding: 0; color: var(--ink); text-decoration: underline; text-decoration-color: var(--line);
+        text-underline-offset: 3px; cursor: pointer; text-align: left; font-weight: 600; }
+  .go:hover { text-decoration-color: currentColor; }
+  details.extras { background: var(--card); margin-top: 10px; }
+  details.extras > summary { padding: 10px 14px; font-size: 13px; }
+  details.extras .inner { padding: 0 12px 12px; }
+  .xtable { min-width: 620px; }
+  .xtable th, .xtable td { padding: 7px 10px; font-size: 13px; }
   tr.flash > td { animation: flash 2.2s ease-out; }
   @keyframes flash { 0%, 40% { background: var(--amber-soft); } 100% { background: transparent; } }
 
-  .empty { color: var(--muted); text-align: center; padding: 40px 0; }
-  .link.fill { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600; }
-  .link:disabled { opacity: .6; cursor: wait; }
-  .confirm { display: flex; gap: 12px 20px; align-items: center; justify-content: space-between; flex-wrap: wrap;
-             background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; }
-  .confirm p { margin: 4px 0 0; color: var(--muted); font-size: 13px; max-width: 640px; }
-  .confirm-actions { display: flex; gap: 8px; }
-  .vall { margin-top: 8px; display: inline-flex; align-items: center; gap: 6px; background: var(--card); color: var(--ink);
-          border: 1px solid var(--line); border-radius: 8px; padding: 5px 12px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
-  .vall:hover { border-color: var(--muted); }
-  .vall[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-  .vall span { font-weight: 400; opacity: .8; }
-  .allorders { border: 1px dashed var(--line); border-radius: 10px; padding: 10px; margin: 0 0 10px; background: var(--card); }
-  .allorders-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 0 2px 4px; }
-  .allorders-head b { font-size: 14px; }
-  .allorders details.ord:first-of-type { margin-top: 4px; }
-  details.ord { background: var(--row); }
-  details.ord > summary { padding: 9px 12px; }
-  details.ord .pill { font-size: 12px; }
-  details.ord .pill div { margin-top: 2px; }
-  #toast { display: flex; align-items: center; gap: 14px; }
-  #toast button { background: none; border: 1px solid currentColor; color: inherit; border-radius: 6px; padding: 3px 10px; font: inherit; font-weight: 600; cursor: pointer; }
-  #toast.hidden { display: none; }
+  /* ---------- All Orders page ---------- */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .stat { text-align: left; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px;
+          cursor: pointer; box-shadow: var(--shadow); color: var(--ink); }
+  .stat b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; margin-top: 2px; }
+  .stat .st { padding: 0; background: none; }
+  .stat[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+  details.ocard > summary { gap: 16px; }
+  .onum { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .oparts { flex: 1.3; min-width: 0; color: var(--ink-2); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .oright { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; font-size: 12px; color: var(--muted); }
+  .oright .money { color: var(--green); font-weight: 650; font-size: 13px; }
+  details.ocard > .inner, details.ord > .inner { padding-left: 16px; }
+
+  .empty { color: var(--muted); text-align: center; padding: 48px 0; }
   #toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--accent); color: var(--on-accent);
-           padding: 10px 16px; border-radius: 8px; font-size: 14px; max-width: calc(100% - 32px); z-index: 5; }
-  @media (max-width: 560px) { .inner { padding-left: 12px; padding-right: 8px; } .bar { gap: 8px; } }
+           padding: 10px 14px 10px 16px; border-radius: 10px; font-size: 14px; max-width: calc(100% - 32px); z-index: 9;
+           display: flex; align-items: center; gap: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+  #toast button { background: none; border: 1px solid currentColor; color: inherit; border-radius: 7px; padding: 3px 10px; font-weight: 600; cursor: pointer; }
+
+  @media (max-width: 640px) {
+    .bar { padding: 10px 12px; }
+    .tabs { order: 3; width: 100%; } .tab { flex: 1; }
+    .inner { padding-left: 12px; padding-right: 10px; }
+    summary { padding: 12px; gap: 10px; }
+    .oparts { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -201,12 +253,22 @@
 <section id="app" class="hidden">
   <header>
     <div class="bar">
-      <h1>Kit Requirements</h1>
-      <span class="status"><span class="dot" id="dot"></span><span id="updated">Loading…</span></span>
-      <span class="status" id="saveState"></span>
-      <button class="link fill" id="autofillBtn" type="button">Autofill</button>
-      <button class="link" id="refreshBtn" type="button">Refresh</button>
-      <button class="link" id="logoutBtn" type="button">Sign out</button>
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg>
+        </span>
+        <div><b>Kit Tracker</b>
+          <small><span class="dot" id="dot"></span><span id="updated">Loading…</span><span id="saveState"></span></small></div>
+      </div>
+      <nav class="tabs" role="tablist" aria-label="Pages">
+        <button class="tab" role="tab" id="tabComponents" data-view="components" aria-selected="true">Components</button>
+        <button class="tab" role="tab" id="tabOrders" data-view="orders" aria-selected="false">All Orders<span id="orderCount"></span></button>
+      </nav>
+      <div class="actions">
+        <button class="link fill" id="autofillBtn" type="button">Autofill</button>
+        <button class="link" id="refreshBtn" type="button">Refresh</button>
+        <button class="link" id="logoutBtn" type="button">Sign out</button>
+      </div>
     </div>
   </header>
   <main>
@@ -216,12 +278,19 @@
       <div class="confirm-actions"><button class="link" id="confirmNo" type="button">Cancel</button>
       <button class="link fill" id="confirmYes" type="button">Autofill now</button></div>
     </div>
-    <input id="search" type="search" placeholder="Search part, component, kit or order number…" autocomplete="off">
-    <p class="legend">
-      <span><i class="sw blue"></i>Painted kit items on hand (per colour)</span>
-      <span><i class="sw red"></i>Raw components on hand (shared by all colours)</span>
-    </p>
+    <div class="toolbar">
+      <div class="searchbox">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="search" type="search" placeholder="Search part, component, kit, customer or order number…" autocomplete="off" aria-label="Search">
+      </div>
+      <div class="legend">
+        <span><i class="sw blue"></i>Painted (per colour)</span>
+        <span><i class="sw red"></i>Raw (shared by colours)</span>
+        <span class="st full">Fulfilled</span><span class="st raw">Partial Raw</span><span class="st missing">Parts Missing</span><span class="st open">Unassigned</span>
+      </div>
+    </div>
     <p class="err" id="salesWarn" role="status"></p>
+    <div id="stats"></div>
     <p class="count" id="count"></p>
     <div id="list"></div>
   </main>
@@ -243,10 +312,14 @@
     del: k => { try { sessionStorage.removeItem(k); } catch (e) {} }
   };
   let token = store.get('kt_token');
-  let leaves = [], inv = { kits: {}, comps: {} }, alloc = {};
+  let leaves = [], extras = [], inv = { kits: {}, comps: {}, items: {} }, alloc = {};
   let pending = {};            // key -> qty, changed here but not yet saved
   let saving = false, saveTimer = null, refreshTimer = null, needsRender = false;
+  let view = (location.hash === '#orders') ? 'orders' : 'components';
+  let orderFilter = 'all';
   const openKeys = new Set();
+  const openOrders = new Set();
+  let D = null;                // derived data for the current render (statuses etc.)
 
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
   const fmt = n => Number(n).toLocaleString(undefined, { maximumFractionDigits: 2 });
@@ -254,17 +327,70 @@
   const pKey = (order, kit) => ['P', order, kit].join('|');
   const rKey = (order, kit, comp) => ['R', order, kit, comp].join('|');
   const q = k => alloc[k] || 0;
+  const need = req => Math.max(0, Math.ceil(Number(req) - 1e-9));   // 0.5 required still needs 1 part
   const money = n => '$' + Number(n || 0).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const plural = (n, w) => fmt(n) + ' ' + w + (n === 1 ? '' : 's');
   // total_cost_cdn is the cost of the whole line (qty required × unit cost), so divide to get one unit.
   const unitCost = l => (l.req ? (l.cost || 0) / l.req : 0);
   const lineFill = l => {
     const p = q(pKey(l.order, l.kit)), r = q(rKey(l.order, l.kit, l.comp));
-    return { p, r, cost: (p + r) * unitCost(l), sale: l.price == null ? null : (p + r) * l.price, left: Math.max(0, l.req - p - r) };
+    return { p, r, cost: (p + r) * unitCost(l), left: Math.max(0, need(l.req) - p - r) };
   };
-  // Sale price comes from Sales_Detail (unit_cdn); some lines may not have one.
-  const saleCell = (v, cls) => '<td class="num ' + cls + '">' + (v == null ? '<span class="na" title="No unit_cdn in Sales_Detail for this order and part">—</span>' : money(v)) + '</td>';
   const rowId = (pn, comp, kit, order) => 'p:' + pn + '|c:' + comp + '|k:' + kit + '|o:' + order;
-  const openOrders = new Set();
+
+  // ---------- Statuses ----------
+  // full = all painted · raw = covered but some raw (can't ship yet) · open = stock exists, not assigned · missing = not enough stock
+  const ST = { full: 'Fulfilled', raw: 'Partial Raw', open: 'Unassigned', missing: 'Parts Missing' };
+  const RANK = { full: 0, raw: 1, open: 2, missing: 3 };
+  const worst = list => list.reduce((w, s) => (RANK[s] > RANK[w] ? s : w), 'full');
+  const chip = (s, extra, title, label) => '<span class="st ' + s + '"' + (title ? ' title="' + esc(title) + '"' : '') + '>' + (label || ST[s]) + (extra ? ' · ' + extra : '') + '</span>';
+
+  function derive() {
+    const kitUsed = {}, compUsed = {}, seenP = {};
+    leaves.forEach(l => {
+      const pk = pKey(l.order, l.kit);
+      if (!seenP[pk]) { seenP[pk] = 1; kitUsed[l.kit] = (kitUsed[l.kit] || 0) + q(pk); }
+      compUsed[l.comp] = (compUsed[l.comp] || 0) + q(rKey(l.order, l.kit, l.comp));
+    });
+    const kitAvail = k => Math.max(0, ((inv.kits[k] || {}).onhand || 0) - (kitUsed[k] || 0));
+    const compAvail = c => Math.max(0, ((inv.comps[c] || {}).onhand || 0) - (compUsed[c] || 0));
+
+    const line = new Map();
+    leaves.forEach(l => {
+      const f = lineFill(l);
+      let s;
+      if (!f.left) s = f.r > 0 ? 'raw' : 'full';
+      else s = (kitAvail(l.kit) + compAvail(l.comp) >= f.left) ? 'open' : 'missing';
+      line.set(l, { f, s });
+    });
+
+    // Kit-level items (screws, boxes…) are given out automatically, lowest order number first.
+    const left = {};
+    Object.keys(inv.items || {}).forEach(i => { left[i] = inv.items[i].onhand; });
+    const extra = new Map();
+    extras.slice().sort((a, b) => byNum(a.order, b.order) || byNum(a.pn, b.pn) || byNum(a.item, b.item)).forEach(x => {
+      const n = need(x.req), give = Math.min(n, Math.max(0, left[x.item] || 0));
+      left[x.item] = (left[x.item] || 0) - give;
+      extra.set(x, { give, short: n - give, s: n - give > 0 ? 'missing' : 'full' });
+    });
+
+    const orders = {};
+    const add = (o, src) => orders[o] || (orders[o] = { order: o, cust: src.cust || '', date: src.date || '', lines: [], extras: [], parts: new Set() });
+    leaves.forEach(l => { const o = add(l.order, l); o.lines.push(l); o.parts.add(l.pn); if (!o.cust && l.cust) o.cust = l.cust; });
+    extras.forEach(x => { if (orders[x.order]) { orders[x.order].extras.push(x); orders[x.order].parts.add(x.pn); } });
+    Object.values(orders).forEach(o => {
+      o.status = worst(o.lines.map(l => line.get(l).s).concat(o.extras.map(x => extra.get(x).s)));
+      o.done = o.lines.filter(l => !line.get(l).f.left).length;
+    });
+    return { line, extra, orders, kitAvail, compAvail };
+  }
+  // Status of one part inside one order (its component lines + its kit-level items).
+  function partStatus(pn, order) {
+    const o = D.orders[order];
+    if (!o) return 'full';
+    return worst(o.lines.filter(l => l.pn === pn).map(l => D.line.get(l).s)
+      .concat(o.extras.filter(x => x.pn === pn).map(x => D.extra.get(x).s)));
+  }
 
   async function api(payload) {
     // text/plain avoids a CORS preflight, which Apps Script doesn't support.
@@ -307,8 +433,8 @@
 
   function showLogin(msg) {
     clearInterval(refreshTimer); refreshTimer = null; clearTimeout(saveTimer);
-    token = null; store.del('kt_token'); leaves = []; alloc = {}; pending = {};
-    $('list').innerHTML = ''; $('saveState').textContent = '';
+    token = null; store.del('kt_token'); leaves = []; extras = []; alloc = {}; pending = {};
+    $('list').innerHTML = ''; $('stats').innerHTML = ''; $('saveState').textContent = '';
     $('app').classList.add('hidden'); $('login').classList.remove('hidden');
     $('loginErr').textContent = msg || '';
     $('u').focus();
@@ -316,6 +442,7 @@
 
   function showApp() {
     $('login').classList.add('hidden'); $('app').classList.remove('hidden');
+    setView(view, true);
     load();
     clearInterval(refreshTimer);
     refreshTimer = setInterval(() => { if (!document.hidden) load(); }, REFRESH_SECONDS * 1000);
@@ -328,6 +455,16 @@
   });
   $('refreshBtn').addEventListener('click', () => load());
 
+  // ---------- Pages ----------
+  function setView(v, quiet) {
+    view = v;
+    $('tabComponents').setAttribute('aria-selected', v === 'components');
+    $('tabOrders').setAttribute('aria-selected', v === 'orders');
+    try { history.replaceState(null, '', v === 'orders' ? '#orders' : '#components'); } catch (e) {}
+    if (!quiet) { window.scrollTo(0, 0); safeRender(true); }
+  }
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => setView(t.dataset.view)));
+
   // ---------- Autofill ----------
   $('autofillBtn').addEventListener('click', () => { $('confirm').classList.remove('hidden'); $('confirmYes').focus(); });
   $('confirmNo').addEventListener('click', () => $('confirm').classList.add('hidden'));
@@ -337,16 +474,16 @@
     try {
       if (Object.keys(pending).length) await flush();
       while (saving) await new Promise(r => setTimeout(r, 200));
-      saving = true; $('saveState').textContent = 'Autofilling…';
+      saving = true; $('saveState').textContent = ' · Autofilling…';
       const r = await api({ action: 'autofill', token });
       saving = false;
       if (!r.ok) { if (r.error === 'SESSION_EXPIRED') return showLogin('Your session expired. Please sign in again.'); throw new Error(r.error); }
       applySnapshot(r);
-      $('saveState').classList.remove('bad'); $('saveState').textContent = 'All changes saved';
+      $('saveState').classList.remove('bad'); $('saveState').textContent = ' · All changes saved';
       $('confirm').classList.add('hidden');
-      const done = leaves.filter(l => !lineFill(l).left).length;
       const before = r.before || {};
-      toast('Autofilled: ' + done + ' of ' + leaves.length + ' lines fully covered.', 'Undo', () => undoTo(before));
+      const done = leaves.filter(l => !lineFill(l).left).length;
+      toast('Autofilled: ' + done + ' of ' + leaves.length + ' lines covered.', 'Undo', () => undoTo(before));
     } catch (err) {
       saving = false;
       toast('Autofill failed. Nothing was changed. Try again.');
@@ -370,7 +507,8 @@
 
   // ---------- Data ----------
   function applySnapshot(r) {
-    leaves = r.leaves || []; inv = r.inv || { kits: {}, comps: {} }; alloc = r.alloc || {};
+    leaves = r.leaves || []; extras = r.extras || []; alloc = r.alloc || {};
+    inv = r.inv || {}; inv.kits = inv.kits || {}; inv.comps = inv.comps || {}; inv.items = inv.items || {};
     Object.keys(pending).forEach(k => { pending[k] > 0 ? alloc[k] = pending[k] : delete alloc[k]; });
     $('salesWarn').textContent = r.salesError || '';
     $('dot').classList.remove('stale');
@@ -393,7 +531,6 @@
   }
 
   // ---------- Limits (same rules the server enforces) ----------
-  const need = req => Math.max(0, Math.ceil(Number(req) - 1e-9));   // 0.5 required still needs 1 part
   function maxFor(key) {
     const p = key.split('|'), cur = q(key);
     if (p[0] === 'P') {
@@ -428,7 +565,7 @@
     if (got === cur) { safeRender(true); return; }
     got > 0 ? alloc[key] = got : delete alloc[key];
     pending[key] = got;
-    $('saveState').classList.remove('bad'); $('saveState').textContent = 'Unsaved changes…';
+    $('saveState').classList.remove('bad'); $('saveState').textContent = ' · Unsaved changes…';
     safeRender(true);
     clearTimeout(saveTimer); saveTimer = setTimeout(flush, SAVE_DELAY_MS);
   }
@@ -440,7 +577,7 @@
     if (!keys.length) return;
     const batch = keys.map(k => ({ key: k, qty: pending[k] }));
     pending = {};
-    saving = true; $('saveState').textContent = 'Saving…';
+    saving = true; $('saveState').textContent = ' · Saving…';
     try {
       const r = await api({ action: 'save', token, changes: batch });
       if (!r.ok) {
@@ -450,14 +587,22 @@
       saving = false;
       applySnapshot(r);
       if (r.adjusted && r.adjusted.length) toast('Some amounts were reduced to match what is on hand.');
-      $('saveState').textContent = Object.keys(pending).length ? 'Unsaved changes…' : 'All changes saved';
+      $('saveState').textContent = Object.keys(pending).length ? ' · Unsaved changes…' : ' · All changes saved';
     } catch (err) {
       saving = false;
       batch.forEach(c => { if (!(c.key in pending)) pending[c.key] = c.qty; });
-      $('saveState').classList.add('bad'); $('saveState').textContent = 'Not saved, retrying…';
+      $('saveState').classList.add('bad'); $('saveState').textContent = ' · Not saved, retrying…';
       saveTimer = setTimeout(flush, 5000);
     }
   }
+
+  // ---------- Clicks ----------
+  $('stats').addEventListener('click', e => {
+    const b = e.target.closest('button[data-filter]');
+    if (!b) return;
+    orderFilter = b.dataset.filter === orderFilter ? 'all' : b.dataset.filter;
+    safeRender(true);
+  });
 
   $('list').addEventListener('click', e => {
     const t = e.target.closest('button[data-otog]');
@@ -497,7 +642,16 @@
   });
   $('list').addEventListener('focusout', () => { setTimeout(() => { if (needsRender && !editing()) safeRender(); }, 0); });
 
-  // ---------- Rendering ----------
+  // Remember which dropdowns are open so refreshes don't collapse them; fill in lazy ones on open.
+  $('list').addEventListener('toggle', e => {
+    const el = e.target, key = el.dataset && el.dataset.key;
+    if (!key) return;
+    const lazy = el.open && el.classList.contains('lazy') && !el.querySelector('.dwrap');
+    if (!$('search').value.trim() || lazy || view === 'orders') el.open ? openKeys.add(key) : openKeys.delete(key);
+    if (lazy) safeRender(true);
+  }, true);
+
+  // ---------- Rendering helpers ----------
   let lastFocus = null;
   const editing = () => document.activeElement && document.activeElement.matches && document.activeElement.matches('#list input[data-k]');
 
@@ -515,6 +669,27 @@
 
   $('search').addEventListener('input', () => safeRender(true));
 
+  const pill = (req, left, label) =>
+    '<span class="pill"><b>' + fmt(req) + '</b>' + label + ' · ' +
+    (left ? fmt(left) + ' to fill' : '<span class="done">filled</span>') + '</span>';
+  const det = (key, forceOpen, inner, cls) => '<details' + (cls ? ' class="' + cls + '"' : '') + ' data-key="' + esc(key) + '"' +
+    (openKeys.has(key) || forceOpen ? ' open' : '') + '>' + inner + '</details>';
+  const colourDot = c => '<span class="chip"><i style="background:' + (/white/i.test(c) ? '#fff' : /black/i.test(c) ? '#111' : 'transparent') + '"></i>' + esc(c) + '</span>';
+
+  function stepper(key, comp, colour, value, max) {
+    return '<span class="step ' + colour + '">' +
+      '<button type="button" data-k="' + esc(key) + '" data-c="' + esc(comp) + '" data-d="-1" aria-label="Remove one"' + (value <= 0 ? ' disabled' : '') + '>−</button>' +
+      '<input type="number" inputmode="numeric" min="0" step="1" data-k="' + esc(key) + '" data-c="' + esc(comp) + '" value="' + value + '" aria-label="Quantity">' +
+      '<button type="button" data-k="' + esc(key) + '" data-c="' + esc(comp) + '" data-d="1" aria-label="Add one"' + (value >= max ? ' disabled' : '') + '>+</button></span>';
+  }
+
+  function statusCounts(statuses) {
+    const n = { full: 0, raw: 0, missing: 0, open: 0 };
+    statuses.forEach(s => n[s]++);
+    return ['full', 'raw', 'missing', 'open'].filter(s => n[s]).map(s => '<span class="st ' + s + '"><b>' + n[s] + '</b> ' + ST[s] + '</span>').join('');
+  }
+
+  // ---------- Components page ----------
   function buildTree() {
     const parts = {};
     leaves.forEach(l => {
@@ -528,7 +703,7 @@
         c.kits = Object.values(c.kits).sort((a, b) => byNum(a.part, b.part)).map(k => {
           k.orders.sort((a, b) => byNum(a.order, b.order));
           k.req = k.orders.reduce((s, o) => s + o.req, 0);
-          k.left = k.orders.reduce((s, o) => s + Math.max(0, o.req - q(pKey(o.order, k.part)) - q(rKey(o.order, k.part, c.part))), 0);
+          k.left = k.orders.reduce((s, o) => s + D.line.get(o).f.left, 0);
           return k;
         });
         c.req = c.kits.reduce((s, k) => s + k.req, 0);
@@ -541,34 +716,23 @@
     });
   }
 
-  const pill = (req, left, label) =>
-    '<span class="pill"><b>' + fmt(req) + '</b>' + label + ' · ' +
-    (left ? fmt(left) + ' to fill' : '<span class="done">filled</span>') + '</span>';
-  const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
-  const det = (key, q, inner) => '<details data-key="' + esc(key) + '"' + (openKeys.has(key) || q ? ' open' : '') + '>' + inner + '</details>';
-
-  function stepper(key, comp, colour, value, max) {
-    return '<span class="step ' + colour + '">' +
-      '<button type="button" data-k="' + esc(key) + '" data-c="' + esc(comp) + '" data-d="-1" aria-label="Remove one"' + (value <= 0 ? ' disabled' : '') + '>−</button>' +
-      '<input type="number" inputmode="numeric" min="0" step="1" data-k="' + esc(key) + '" data-c="' + esc(comp) + '" value="' + value + '" aria-label="Quantity">' +
-      '<button type="button" data-k="' + esc(key) + '" data-c="' + esc(comp) + '" data-d="1" aria-label="Add one"' + (value >= max ? ' disabled' : '') + '>+</button></span>';
-  }
-
   function ordersBlock(c, k) {
-    let tReq = 0, tP = 0, tR = 0, tLeft = 0, tCost = 0, tSale = 0;
+    let tReq = 0, tP = 0, tR = 0, tCost = 0, tSale = 0;
     const body = k.orders.map(o => {
       const pk = pKey(o.order, k.part), rk = rKey(o.order, k.part, c.part);
-      const f = lineFill(o);
-      tReq += o.req; tP += f.p; tR += f.r; tLeft += f.left; tCost += f.cost; tSale += f.sale || 0;
+      const { f, s } = D.line.get(o);
+      const sale = o.price == null ? null : (f.p + f.r) * o.price;
+      tReq += o.req; tP += f.p; tR += f.r; tCost += f.cost; tSale += sale || 0;
       const id = rowId(o.pn, c.part, k.part, o.order), open = openOrders.has(id);
       return '<tr data-row="' + esc(id) + '"><td><button type="button" class="otog" data-otog="' + esc(id) + '" aria-expanded="' + open + '">' +
         '<span>' + esc(o.order) + (o.cust ? '<small>' + esc(o.cust) + '</small>' : '') + '</span></button></td>' +
         '<td class="num">' + fmt(o.req) + '</td>' +
         '<td class="c">' + stepper(pk, c.part, 'blue', f.p, maxFor(pk)) + '</td>' +
         '<td class="c">' + stepper(rk, c.part, 'red', f.r, maxFor(rk)) + '</td>' +
-        '<td class="num cost">' + money(f.cost) + '</td>' + saleCell(f.sale, 'green') +
-        '<td class="num left' + (f.left ? '' : ' zero') + '">' + (f.left ? fmt(f.left) : '✓') + '</td></tr>' +
-        (open ? '<tr class="detail"><td colspan="7"><div class="dwrap">' + orderDetail(o, true) + '</div></td></tr>' : '');
+        '<td class="num cost">' + money(f.cost) + '</td>' +
+        '<td class="num green">' + (sale == null ? '<span class="na" title="No unit_cdn in Sales_Detail for this order and part">—</span>' : money(sale)) + '</td>' +
+        '<td>' + chip(s, f.left ? fmt(f.left) + ' short' : '') + '</td></tr>' +
+        (open ? '<tr class="detail"><td colspan="7"><div class="dwrap">' + orderView(o.order, o, 'k:' + id) + '</div></td></tr>' : '');
     }).join('');
 
     const kitOn = (inv.kits[k.part] || {}).onhand || 0, kitUsed = paintedUsed(k.part);
@@ -583,10 +747,10 @@
       (used > on ? '<div class="warn">Over-allocated by ' + fmt(used - on) + '. On hand dropped in the sheet. Remove some to fix.</div>' : '') + '</div>';
 
     return '<div class="tablewrap"><table><thead><tr><th>Order number</th><th class="num">Qty required</th>' +
-      '<th class="c blue">Painted</th><th class="c red">Raw</th><th class="num cost">Avg Cost</th><th class="num green">Sale Value</th><th class="num">Still needed</th></tr></thead>' +
+      '<th class="c blue">Painted</th><th class="c red">Raw</th><th class="num cost">Avg Cost</th><th class="num green">Sale Value</th><th>Status</th></tr></thead>' +
       '<tbody>' + body + '</tbody><tfoot><tr><td>Total</td><td class="num">' + fmt(tReq) + '</td>' +
       '<td class="c blue">' + fmt(tP) + '</td><td class="c red">' + fmt(tR) + '</td><td class="num cost">' + money(tCost) + '</td><td class="num green">' + money(tSale) + '</td>' +
-      '<td class="num">' + fmt(tLeft) + '</td></tr></tfoot></table></div>' +
+      '<td>' + (k.left ? fmt(k.left) + ' still needed' : '') + '</td></tr></tfoot></table></div>' +
       '<div class="pools">' +
       pool('blue', 'Painted ' + esc(k.part) + (k.colour ? ' · ' + esc(k.colour) : ''), kitOn, kitUsed,
            kitComps > 1 ? '<div class="note">This kit has ' + kitComps + ' components. One painted kit covers the order under each of them.</div>' : '') +
@@ -595,117 +759,24 @@
       '</div>';
   }
 
-  // Everything else on the same order, wherever it sits in the tree.
-  function orderDetail(cur, markLine) {
-    const lines = leaves.filter(l => l.order === cur.order);
-    const parts = {};
-    lines.forEach(l => (parts[l.pn] || (parts[l.pn] = [])).push(l));
-    let doneLines = 0, costAll = 0, costTotal = 0, saleAll = 0, salePriced = false;
-
-    const body = Object.keys(parts).sort(byNum).map(pn => {
-      const group = parts[pn].sort((a, b) => byNum(a.comp, b.comp) || byNum(a.kit, b.kit));
-      const first = group[0];
-      const fills = group.map(lineFill);
-      const paintedKeys = {};
-      let raw = 0, cost = 0, reqSum = 0, done = 0, any = false;
-      group.forEach((l, i) => {
-        const f = fills[i];
-        paintedKeys[pKey(l.order, l.kit)] = f.p;
-        raw += f.r; cost += f.cost; reqSum += l.req; costTotal += l.cost || 0;
-        if (!f.left) done++;
-        if (f.p + f.r > 0) any = true;
-      });
-      const painted = Object.values(paintedKeys).reduce((a, b) => a + b, 0);
-      // Complete units of this part = the smallest number any one component can support.
-      const ordered = first.oqty;
-      let units = null;
-      if (ordered) {
-        units = Math.min(ordered, ...group.map((l, i) => {
-          const per = l.req / ordered;
-          return per > 0 ? Math.floor((fills[i].p + fills[i].r) / per + 1e-9) : ordered;
-        }));
-      }
-      const sale = first.price != null && units != null ? first.price * units : null;
-      if (sale != null) { saleAll += sale; salePriced = true; }
-      costAll += cost; doneLines += done;
-
-      const head = '<tr class="grp"><td colspan="3"><b>' + esc(pn) + '</b>' +
-        (first.pnDesc ? '<div class="desc">' + esc(first.pnDesc) + '</div>' : '') + '</td>' +
-        '<td class="num">' + (ordered ? fmt(ordered) + '<div class="desc">units</div>' : fmt(reqSum)) + '</td>' +
-        '<td class="num blue">' + fmt(painted) + '</td><td class="num red">' + fmt(raw) + '</td>' +
-        '<td class="num cost">' + money(cost) + '</td>' +
-        '<td class="num green">' + (sale == null ? '<span class="na" title="No sale price or unit count for this part">—</span>'
-          : money(sale) + '<div class="desc">' + fmt(units) + ' of ' + fmt(ordered) + ' units</div>') + '</td>' +
-        '<td>' + statusChip(done, group.length, any) + '</td></tr>';
-
-      const rows = group.map((l, i) => {
-        const f = fills[i], me = markLine && l === cur;
-        const st = !f.left ? '<span class="st full">Fulfilled</span>'
-                 : f.p + f.r ? '<span class="st part">Partial · ' + fmt(f.p + f.r) + '/' + fmt(l.req) + '</span>'
-                 : '<span class="st none">Not started</span>';
-        const go = me ? '<b>' + esc(l.comp) + '</b> <span class="desc">(this line)</span>'
-                 : '<button type="button" class="go" data-go="' + esc(JSON.stringify([l.pn, l.comp, l.kit, l.order])) + '">' + esc(l.comp) + '</button>';
-        return '<tr class="sub' + (me ? ' me' : '') + '"><td></td><td title="' + esc(l.compDesc || '') + '">' + go + '</td>' +
-          '<td>' + esc(l.kit) + (l.colour ? ' <span class="desc">· ' + esc(l.colour) + '</span>' : '') + '</td>' +
-          '<td class="num">' + fmt(l.req) + '</td><td class="num blue">' + fmt(f.p) + '</td><td class="num red">' + fmt(f.r) + '</td>' +
-          '<td class="num cost">' + money(f.cost) + '</td><td></td><td>' + st + '</td></tr>';
-      }).join('');
-      return head + rows;
-    }).join('');
-
-    return '<div class="ohead"><span>Order <b>' + esc(cur.order) + '</b></span>' +
-      (cur.cust ? '<span>Customer <b>' + esc(cur.cust) + '</b></span>' : '') +
-      (cur.date ? '<span>Ordered <b>' + esc(cur.date) + '</b></span>' : '') +
-      '<span><b>' + doneLines + ' of ' + lines.length + '</b> lines fulfilled</span>' +
-      '<span>Avg cost <b>' + money(costAll) + '</b> of <b>' + money(costTotal) + '</b></span>' +
-      (salePriced ? '<span>Sale value <b class="green">' + money(saleAll) + '</b></span>' : '') + '</div>' +
-      '<div class="tablewrap"><table class="otable"><thead><tr><th>Part</th><th>Component</th><th>Kit</th>' +
-      '<th class="num">Req</th><th class="num blue">Painted</th><th class="num red">Raw</th><th class="num cost">Avg Cost</th><th class="num green">Sale Value</th><th>Status</th></tr></thead>' +
-      '<tbody>' + body + '</tbody></table></div>';
-  }
-
-
-  const statusChip = (done, total, any) => done === total ? '<span class="st full">Fulfilled</span>'
-    : any ? '<span class="st part">Partial</span>' : '<span class="st none">Not started</span>';
-
   // "View all orders" under a part: every order that includes this part, each opening to the full order.
-  function partOrders(pn, pk) {
-    const byOrder = {};
-    leaves.forEach(l => { if (l.pn === pn && !byOrder[l.order]) byOrder[l.order] = l; });
-    const orders = Object.keys(byOrder).sort(byNum);
+  function partOrders(pn, pk, orders) {
     const wk = pk + '|orders';
-    const items = orders.map(o => {
-      const first = byOrder[o];
-      const lines = leaves.filter(l => l.order === o);
-      const fills = lines.map(lineFill);
-      const done = fills.filter(f => !f.left).length;
-      const any = fills.some(f => f.p + f.r > 0);
-      const ok = wk + '|o:' + o, open = openKeys.has(ok);
-      return '<details class="ord" data-key="' + esc(ok) + '"' + (open ? ' open' : '') + '>' +
-        '<summary><span class="name"><div class="part">' + esc(o) + '</div><div class="desc">' +
-        [first.cust, first.date].filter(Boolean).map(esc).join(' · ') + '</div></span>' +
-        '<span class="pill">' + statusChip(done, lines.length, any) + '<div>' + done + ' of ' + plural(lines.length, 'line') + ' fulfilled</div></span></summary>' +
-        '<div class="inner">' + (open ? '<div class="dwrap">' + orderDetail(first, false) + '</div>' : '') + '</div></details>';
-    }).join('');
     if (!openKeys.has(wk)) return '';
+    const items = orders.map(o => {
+      const O = D.orders[o], ok = wk + '|o:' + o, open = openKeys.has(ok);
+      return '<details class="ord lazy" data-key="' + esc(ok) + '"' + (open ? ' open' : '') + '>' +
+        '<summary><span class="name"><div class="part">' + esc(o) + '</div><div class="desc">' +
+        [O.cust, O.date].filter(Boolean).map(esc).join(' · ') + '</div></span>' +
+        '<span class="oright">' + chip(partStatus(pn, o), '', 'Status of ' + pn + ' in this order') +
+        '<span>' + O.done + ' of ' + plural(O.lines.length, 'line') + ' covered</span></span></summary>' +
+        '<div class="inner">' + (open ? '<div class="dwrap">' + orderView(o, null, ok) + '</div>' : '') + '</div></details>';
+    }).join('');
     return '<div class="allorders" data-panel="' + esc(wk) + '"><div class="allorders-head"><b>All orders for ' + esc(pn) + '</b>' +
       '<span class="desc">' + plural(orders.length, 'order') + '</span></div>' + items + '</div>';
   }
 
-  // Open part → component → kit for a line and scroll to its order row.
-  function goTo(pn, comp, kit, order) {
-    if ($('search').value) $('search').value = '';
-    const pk = 'p:' + pn, ck = pk + '|c:' + comp, kk = ck + '|k:' + kit;
-    [pk, ck, kk].forEach(k => openKeys.add(k));
-    safeRender(true);
-    const row = $('list').querySelector('tr[data-row="' + CSS.escape(rowId(pn, comp, kit, order)) + '"]');
-    if (!row) return;
-    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash');
-  }
-
-  function render() {
-    const s = $('search').value.trim().toLowerCase();
+  function renderComponents(s) {
     const m = v => String(v || '').toLowerCase().includes(s);
     let tree = buildTree();
     if (s) {
@@ -713,26 +784,28 @@
         if (m(p.part) || m(p.desc)) return p;
         const comps = p.comps.map(c => {
           if (m(c.part) || m(c.desc)) return c;
-          const kits = c.kits.filter(k => m(k.part) || m(k.desc) || k.orders.some(o => m(o.order)));
+          const kits = c.kits.filter(k => m(k.part) || m(k.desc) || k.orders.some(o => m(o.order) || m(o.cust)));
           return kits.length ? Object.assign({}, c, { kits }) : null;
         }).filter(Boolean);
         return comps.length ? Object.assign({}, p, { comps }) : null;
       }).filter(Boolean);
     }
-
+    $('stats').innerHTML = '';
     $('count').textContent = plural(tree.length, 'part');
-    if (!tree.length) { $('list').innerHTML = '<p class="empty">' + (leaves.length ? 'No matches.' : 'No open requirements.') + '</p>'; return; }
+    if (!tree.length) return '<p class="empty">' + (leaves.length ? 'No matches.' : 'No open requirements.') + '</p>';
 
-    $('list').innerHTML = tree.map(p => {
+    return tree.map(p => {
       const pk = 'p:' + p.part;
+      const orders = [...new Set(leaves.filter(l => l.pn === p.part).map(l => l.order))].sort(byNum);
+      const counts = statusCounts(orders.map(o => partStatus(p.part, o)));
+      const vOn = openKeys.has(pk + '|orders');
       const comps = p.comps.map(c => {
         const ck = pk + '|c:' + c.part;
         const kits = c.kits.map(k => {
           const kk = ck + '|k:' + k.part;
           return det(kk, s,
             '<summary><span class="name"><div class="lvl">Kit</div><div class="part">' + esc(k.part) +
-            (k.colour ? '<span class="chip"><i style="background:' + (/white/i.test(k.colour) ? '#fff' : /black/i.test(k.colour) ? '#111' : 'transparent') + '"></i>' + esc(k.colour) + '</span>' : '') +
-            '</div>' + (k.desc ? '<div class="desc">' + esc(k.desc) + '</div>' : '') + '</span>' +
+            (k.colour ? colourDot(k.colour) : '') + '</div>' + (k.desc ? '<div class="desc">' + esc(k.desc) + '</div>' : '') + '</span>' +
             pill(k.req, k.left, plural(k.orders.length, 'order')) + '</summary>' +
             '<div class="inner">' + ordersBlock(c, k) + '</div>');
         }).join('');
@@ -744,21 +817,155 @@
       return det(pk, s,
         '<summary><span class="name"><div class="lvl">Part</div><div class="part">' + esc(p.part) + '</div>' +
         (p.desc ? '<div class="desc">' + esc(p.desc) + '</div>' : '') +
-        (() => { const n = new Set(leaves.filter(l => l.pn === p.part).map(l => l.order)).size, on = openKeys.has(pk + '|orders');
-                 return '<button type="button" class="vall" data-vall="' + esc(pk) + '" aria-pressed="' + on + '">' +
-                   (on ? 'Hide orders' : 'View all orders') + ' <span>(' + n + ')</span></button>'; })() + '</span>' +
-        pill(p.req, p.left, plural(p.comps.length, 'component')) + '</summary><div class="inner">' + partOrders(p.part, pk) + comps + '</div>');
+        (counts ? '<div class="chips" title="Orders for this part, by status">' + counts + '</div>' : '') +
+        '<button type="button" class="vall" data-vall="' + esc(pk) + '" aria-pressed="' + vOn + '">' +
+        (vOn ? 'Hide orders' : 'View all orders') + ' <span>(' + orders.length + ')</span></button></span>' +
+        pill(p.req, p.left, plural(p.comps.length, 'component')) + '</summary><div class="inner">' + partOrders(p.part, pk, orders) + comps + '</div>');
     }).join('');
   }
 
-  // Remember which buttons are open so refreshes don't collapse them.
-  $('list').addEventListener('toggle', e => {
-    const key = e.target.dataset && e.target.dataset.key;
-    if (!key) return;
-    const lazy = e.target.open && e.target.classList.contains('ord') && !e.target.querySelector('.dwrap');
-    if (!$('search').value.trim() || lazy) e.target.open ? openKeys.add(key) : openKeys.delete(key);
-    if (lazy) safeRender(true);
-  }, true);
+  // ---------- One order, everything in it ----------
+  // markLeaf highlights the line you came from; ctx keeps open/closed state separate per place it's shown.
+  function orderView(order, markLeaf, ctx) {
+    const O = D.orders[order];
+    if (!O) return '';
+    const parts = {};
+    O.lines.forEach(l => (parts[l.pn] || (parts[l.pn] = [])).push(l));
+    let costAll = 0, costTotal = 0, saleAll = 0, salePriced = false;
+
+    const body = Object.keys(parts).sort(byNum).map(pn => {
+      const group = parts[pn].sort((a, b) => byNum(a.comp, b.comp) || byNum(a.kit, b.kit));
+      const first = group[0];
+      const paintedKeys = {};
+      let raw = 0, cost = 0, reqSum = 0;
+      group.forEach(l => {
+        const f = D.line.get(l).f;
+        paintedKeys[pKey(l.order, l.kit)] = f.p;
+        raw += f.r; cost += f.cost; reqSum += l.req; costTotal += l.cost || 0;
+      });
+      const painted = Object.values(paintedKeys).reduce((a, b) => a + b, 0);
+      // Complete units of this part = the smallest number any one component can support.
+      const ordered = first.oqty;
+      let units = null;
+      if (ordered) {
+        units = Math.min(ordered, ...group.map(l => {
+          const f = D.line.get(l).f, per = l.req / ordered;
+          return per > 0 ? Math.floor((f.p + f.r) / per + 1e-9) : ordered;
+        }));
+      }
+      const sale = first.price != null && units != null ? first.price * units : null;
+      if (sale != null) { saleAll += sale; salePriced = true; }
+      costAll += cost;
+
+      const head = '<tr class="grp"><td colspan="3"><b>' + esc(pn) + '</b>' +
+        (first.pnDesc ? '<div class="desc">' + esc(first.pnDesc) + '</div>' : '') + '</td>' +
+        '<td class="num">' + (ordered ? fmt(ordered) + '<div class="desc">units</div>' : fmt(reqSum)) + '</td>' +
+        '<td class="num blue">' + fmt(painted) + '</td><td class="num red">' + fmt(raw) + '</td>' +
+        '<td class="num cost">' + money(cost) + '</td>' +
+        '<td class="num green">' + (sale == null ? '<span class="na" title="No sale price or unit count for this part">—</span>'
+          : money(sale) + '<div class="desc">' + fmt(units) + ' of ' + fmt(ordered) + ' units</div>') + '</td>' +
+        '<td>' + chip(partStatus(pn, order)) + '</td></tr>';
+
+      const rows = group.map(l => {
+        const { f, s } = D.line.get(l), me = markLeaf && l === markLeaf;
+        const go = me ? '<b>' + esc(l.comp) + '</b> <span class="desc">(this line)</span>'
+                 : '<button type="button" class="go" data-go="' + esc(JSON.stringify([l.pn, l.comp, l.kit, l.order])) + '">' + esc(l.comp) + '</button>';
+        return '<tr class="sub' + (me ? ' me' : '') + '"><td></td><td title="' + esc(l.compDesc || '') + '">' + go + '</td>' +
+          '<td>' + esc(l.kit) + (l.colour ? ' <span class="desc">· ' + esc(l.colour) + '</span>' : '') + '</td>' +
+          '<td class="num">' + fmt(l.req) + '</td><td class="num blue">' + fmt(f.p) + '</td><td class="num red">' + fmt(f.r) + '</td>' +
+          '<td class="num cost">' + money(f.cost) + '</td><td></td><td>' + chip(s, f.left ? fmt(f.left) + ' short' : '') + '</td></tr>';
+      }).join('');
+      return head + rows;
+    }).join('');
+
+    return '<div class="ohead"><span>Order <b>' + esc(order) + '</b></span>' +
+      (O.cust ? '<span>Customer <b>' + esc(O.cust) + '</b></span>' : '') +
+      (O.date ? '<span>Ordered <b>' + esc(O.date) + '</b></span>' : '') +
+      chip(O.status) +
+      '<span><b>' + O.done + ' of ' + O.lines.length + '</b> lines covered</span>' +
+      '<span>Avg cost <b>' + money(costAll) + '</b> of <b>' + money(costTotal) + '</b></span>' +
+      (salePriced ? '<span>Sale value <b class="green">' + money(saleAll) + '</b></span>' : '') + '</div>' +
+      '<div class="tablewrap"><table class="otable"><thead><tr><th>Part</th><th>Component</th><th>Kit</th>' +
+      '<th class="num">Req</th><th class="num blue">Painted</th><th class="num red">Raw</th><th class="num cost">Avg Cost</th><th class="num green">Sale Value</th><th>Status</th></tr></thead>' +
+      '<tbody>' + body + '</tbody></table></div>' + extrasBlock(O, ctx);
+  }
+
+  // Other items on the order (screws, boxes, inserts…) from the Kits tab.
+  function extrasBlock(O, ctx) {
+    if (!O.extras.length) return '';
+    const list = O.extras.slice().sort((a, b) => byNum(a.pn, b.pn) || byNum(a.item, b.item));
+    const short = list.filter(x => D.extra.get(x).short > 0).length;
+    const key = 'x|' + ctx;
+    const rows = list.map(x => {
+      const c = D.extra.get(x), on = (inv.items[x.item] || {}).onhand || 0;
+      return '<tr><td><b>' + esc(x.item) + '</b></td><td class="desc">' + esc(x.desc) + '</td><td>' + esc(x.pn) + '</td>' +
+        '<td class="num">' + fmt(x.req) + '</td><td class="num">' + fmt(on) + '</td>' +
+        '<td>' + (c.short ? chip('missing', '', 'Not enough on hand after earlier orders', fmt(c.short) + ' short') : chip('full', '', 'In stock and set aside for this order', 'In stock')) + '</td></tr>';
+    }).join('');
+    return det(key, false,
+      '<summary><span class="name"><b>Other items</b> <span class="desc">· screws, boxes, inserts and other kit-level items (' + list.length + ')</span></span>' +
+      (short ? chip('missing', '', '', plural(short, 'item') + ' short') : chip('full', '', '', 'All in stock')) + '</summary>' +
+      '<div class="inner"><div class="tablewrap"><table class="xtable"><thead><tr><th>Item</th><th>Description</th><th>Part</th>' +
+      '<th class="num">Req</th><th class="num">On hand</th><th>Status</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      '<p class="desc" style="margin:8px 2px 0">Stock is set aside automatically, lowest order number first.</p></div>', 'extras');
+  }
+
+  // ---------- All Orders page ----------
+  function renderOrders(s) {
+    const m = v => String(v || '').toLowerCase().includes(s);
+    const all = Object.values(D.orders).sort((a, b) => byNum(a.order, b.order));
+    const n = { full: 0, raw: 0, missing: 0, open: 0 };
+    all.forEach(o => n[o.status]++);
+    const stat = (f, label, val) => '<button type="button" class="stat" data-filter="' + f + '" aria-pressed="' + (orderFilter === f) + '">' +
+      (f === 'all' ? '<span class="desc">' + label + '</span>' : '<span class="st ' + f + '">' + label + '</span>') + '<b>' + val + '</b></button>';
+    $('stats').innerHTML = '<div class="stats">' + stat('all', 'All orders', all.length) + stat('full', ST.full, n.full) +
+      stat('raw', ST.raw, n.raw) + stat('missing', ST.missing, n.missing) + stat('open', ST.open, n.open) + '</div>';
+
+    const list = all.filter(o => (orderFilter === 'all' || o.status === orderFilter) &&
+      (!s || m(o.order) || m(o.cust) || [...o.parts].some(m) || o.lines.some(l => m(l.comp) || m(l.kit)) || o.extras.some(x => m(x.item) || m(x.desc))));
+    $('count').textContent = plural(list.length, 'order') + (orderFilter !== 'all' ? ' · ' + ST[orderFilter] : '') + ' · lowest order number first';
+    if (!list.length) return '<p class="empty">No orders match.</p>';
+
+    return list.map(o => {
+      const key = 'O:' + o.order, open = openKeys.has(key);
+      let sale = 0, priced = false;
+      const byPart = {};
+      o.lines.forEach(l => (byPart[l.pn] || (byPart[l.pn] = [])).push(l));
+      Object.values(byPart).forEach(g => {
+        const f = g[0];
+        if (f.price == null || !f.oqty) return;
+        const units = Math.min(f.oqty, ...g.map(l => { const x = D.line.get(l).f, per = l.req / f.oqty; return per > 0 ? Math.floor((x.p + x.r) / per + 1e-9) : f.oqty; }));
+        sale += f.price * units; priced = true;
+      });
+      return '<details class="ocard lazy" data-key="' + esc(key) + '"' + (open ? ' open' : '') + '>' +
+        '<summary><span class="name" style="flex:0 1 260px"><div class="onum">' + esc(o.order) + '</div><div class="desc">' +
+        [o.cust, o.date].filter(Boolean).map(esc).join(' · ') + '</div></span>' +
+        '<span class="oparts" title="' + esc([...o.parts].sort(byNum).join(', ')) + '">' + [...o.parts].sort(byNum).map(esc).join(' · ') + '</span>' +
+        '<span class="oright">' + chip(o.status) + '<span>' + o.done + ' of ' + plural(o.lines.length, 'line') + ' covered</span>' +
+        (priced ? '<span class="money">' + money(sale) + '</span>' : '') + '</span></summary>' +
+        '<div class="inner">' + (open ? '<div class="dwrap">' + orderView(o.order, null, key) + '</div>' : '') + '</div></details>';
+    }).join('');
+  }
+
+  // Open part → component → kit for a line and scroll to its order row.
+  function goTo(pn, comp, kit, order) {
+    if ($('search').value) $('search').value = '';
+    const pk = 'p:' + pn, ck = pk + '|c:' + comp, kk = ck + '|k:' + kit;
+    [pk, ck, kk].forEach(k => openKeys.add(k));
+    if (view !== 'components') setView('components', true);
+    safeRender(true);
+    const row = $('list').querySelector('tr[data-row="' + CSS.escape(rowId(pn, comp, kit, order)) + '"]');
+    if (!row) return;
+    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash');
+  }
+
+  function render() {
+    D = derive();
+    $('orderCount').textContent = ' ' + Object.keys(D.orders).length;
+    const s = $('search').value.trim().toLowerCase();
+    $('list').innerHTML = view === 'orders' ? renderOrders(s) : renderComponents(s);
+  }
 
   if (token) showApp(); else $('u').focus();
 })();

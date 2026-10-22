@@ -5,229 +5,339 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow, noarchive">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; form-action 'none'; base-uri 'none'">
-<title>Kit Tracker</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; form-action 'none'; base-uri 'none'">
+<title>Product Allocation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f3f4f6; --card: #ffffff; --ink: #111827; --ink-2: #374151; --muted: #6b7280; --line: #e5e7eb; --row: #f9fafb;
-    --accent: #1f2937; --on-accent: #ffffff; --focus: #2563eb;
-    --blue: #1d4ed8; --blue-soft: #eff4ff; --red: #c62828; --red-soft: #fdeeee;
-    --green: #15803d; --green-soft: #e9f7ee; --amber: #a15c00; --amber-soft: #fff4dd; --grey-soft: #f1f2f4;
-    --shadow: 0 1px 2px rgba(16,24,40,.05), 0 1px 3px rgba(16,24,40,.04);
-    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --bg: #f5f6f8; --card: #ffffff; --ink: #0f172a; --ink-2: #334155; --muted: #64748b; --faint: #94a3b8;
+    --line: #e5e8ee; --line-2: #eef0f4; --row: #f8fafc; --hover: #f3f5f8;
+    --accent: #0f172a; --on-accent: #ffffff; --focus: #2563eb;
+    --painted: #2563eb; --painted-ink: #1d4ed8; --painted-soft: #eef3ff;
+    --raw: #d03b3b; --raw-ink: #b42323; --raw-soft: #fdf0f0;
+    --s-full: #0ca30c; --s-full-ink: #0b7a17; --s-full-soft: #e9f8ec;
+    --s-raw: #fab219; --s-raw-ink: #925d00; --s-raw-soft: #fff6e1;
+    --s-miss: #d03b3b; --s-miss-ink: #b42323; --s-miss-soft: #fdeeee;
+    --s-open: #a3a9b3; --s-open-ink: #5b6472; --s-open-soft: #f1f3f6;
+    --money: #0b7a17; --track: #edf0f4;
+    --shadow-sm: 0 1px 2px rgba(15,23,42,.04);
+    --shadow: 0 1px 2px rgba(15,23,42,.04), 0 2px 8px rgba(15,23,42,.04);
+    --shadow-lg: 0 12px 32px rgba(15,23,42,.16);
+    --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --r: 14px;
   }
   @media (prefers-color-scheme: dark) {
-    :root { --bg: #0f1115; --card: #171a20; --ink: #eef0f3; --ink-2: #cfd4db; --muted: #9aa3ad; --line: #2a2f37; --row: #1c2027;
-            --accent: #e5e7eb; --on-accent: #111827; --focus: #7aa2ff;
-            --blue: #7aa2ff; --blue-soft: #1a2540; --red: #ff7b7b; --red-soft: #3a1d20;
-            --green: #5fd08f; --green-soft: #15301f; --amber: #f0b44c; --amber-soft: #352812; --grey-soft: #23272e;
-            --shadow: none; }
+    :root { --bg: #0d1016; --card: #151922; --ink: #e8ecf2; --ink-2: #c3cad5; --muted: #8b95a5; --faint: #667085;
+            --line: #262c38; --line-2: #1f2430; --row: #181d27; --hover: #1c2230;
+            --accent: #e8ecf2; --on-accent: #0d1016; --focus: #7aa2ff;
+            --painted: #4f86f7; --painted-ink: #8fb2ff; --painted-soft: #172340;
+            --raw: #e85858; --raw-ink: #ff9a9a; --raw-soft: #361b1f;
+            --s-full-ink: #5fd38a; --s-full-soft: #12301d; --s-raw-ink: #f5c35a; --s-raw-soft: #33280f;
+            --s-miss-ink: #ff8f8f; --s-miss-soft: #371a1d; --s-open: #5d6470; --s-open-ink: #a5aebb; --s-open-soft: #222834;
+            --money: #5fd38a; --track: #232a36;
+            --shadow-sm: none; --shadow: 0 0 0 1px rgba(255,255,255,.02); --shadow-lg: 0 12px 32px rgba(0,0,0,.5); }
   }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink);
-         font: 14.5px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  html { scroll-padding-top: 90px; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 var(--font); -webkit-font-smoothing: antialiased; }
   .hidden { display: none !important; }
-  button { font: inherit; }
-  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
+  .mono { font-family: var(--mono); letter-spacing: -.01em; }
 
-  /* ---------- Login ---------- */
-  #login { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
-  .login-card { width: 100%; max-width: 360px; background: var(--card); border: 1px solid var(--line);
-                border-radius: 16px; padding: 28px; box-shadow: var(--shadow); }
-  .lock { width: 42px; height: 42px; border-radius: 12px; background: var(--row); color: var(--ink);
-          border: 1px solid var(--line); display: grid; place-items: center; margin-bottom: 14px; }
-  .login-card h1 { font-size: 20px; margin: 0 0 4px; }
-  .sub { color: var(--muted); margin: 0 0 20px; font-size: 14px; }
-  label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 6px; }
+  /* ============ Login ============ */
+  #login { min-height: 100vh; display: grid; place-items: center; padding: 16px;
+           background: radial-gradient(1200px 600px at 50% -10%, color-mix(in srgb, var(--painted) 10%, transparent), transparent), var(--bg); }
+  .login-card { width: 100%; max-width: 380px; background: var(--card); border: 1px solid var(--line);
+                border-radius: 18px; padding: 32px; box-shadow: var(--shadow-lg); }
+  .logo { width: 44px; height: 44px; border-radius: 12px; background: var(--accent); color: var(--on-accent);
+          display: grid; place-items: center; margin-bottom: 18px; }
+  .login-card h1 { font-size: 22px; margin: 0 0 4px; letter-spacing: -.02em; }
+  .sub { color: var(--muted); margin: 0 0 22px; font-size: 14px; }
+  label { display: block; font-size: 12.5px; font-weight: 600; margin: 14px 0 6px; color: var(--ink-2); }
   input { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px;
-          background: var(--card); color: var(--ink); font: inherit; }
-  input:focus { outline: 2px solid var(--focus); outline-offset: 0; border-color: transparent; }
-  .btn { width: 100%; margin-top: 18px; padding: 11px; border: 0; border-radius: 10px; background: var(--accent);
+          background: var(--card); color: var(--ink); font: inherit; transition: border-color .15s, box-shadow .15s; }
+  input:focus { outline: none; border-color: var(--focus); box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 18%, transparent); }
+  .btn { width: 100%; margin-top: 20px; padding: 11px; border: 0; border-radius: 10px; background: var(--accent);
          color: var(--on-accent); font-weight: 600; cursor: pointer; }
   .btn:disabled { opacity: .6; cursor: wait; }
-  .err { color: var(--red); font-size: 13px; min-height: 18px; margin-top: 10px; }
+  .err { color: var(--s-miss-ink); font-size: 13px; min-height: 18px; margin-top: 10px; }
 
-  /* ---------- Header ---------- */
-  header { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--card) 92%, transparent);
-           backdrop-filter: saturate(1.4) blur(8px); border-bottom: 1px solid var(--line); }
-  .bar { max-width: 1120px; margin: 0 auto; padding: 10px 16px; display: flex; gap: 10px 16px; align-items: center; flex-wrap: wrap; }
-  .brand { display: flex; align-items: center; gap: 10px; margin-right: auto; }
-  .brand-mark { width: 30px; height: 30px; border-radius: 8px; background: var(--accent); color: var(--on-accent);
-                display: grid; place-items: center; flex: none; }
-  .brand b { font-size: 15px; display: block; line-height: 1.2; }
-  .brand small { color: var(--muted); font-size: 12px; display: flex; align-items: center; gap: 6px; }
-  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); display: inline-block; }
-  .dot.stale { background: var(--amber); }
-  #saveState.bad { color: var(--red); }
-  .tabs { display: inline-flex; background: var(--row); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 2px; }
-  .tab { border: 0; background: none; color: var(--muted); padding: 6px 14px; border-radius: 7px; font-weight: 600; cursor: pointer; font-size: 13.5px; }
-  .tab[aria-selected="true"] { background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
-  .tab span { font-weight: 500; color: var(--muted); margin-left: 4px; }
-  .actions { display: flex; gap: 8px; }
-  .link { background: var(--card); border: 1px solid var(--line); color: var(--ink); border-radius: 9px;
-          padding: 6px 12px; font-size: 13px; cursor: pointer; font-weight: 500; }
-  .link:hover { border-color: var(--muted); }
-  .link.fill { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600; }
-  .link:disabled { opacity: .6; cursor: wait; }
+  /* ============ Top bar ============ */
+  header { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 82%, transparent);
+           backdrop-filter: saturate(1.6) blur(12px); -webkit-backdrop-filter: saturate(1.6) blur(12px); border-bottom: 1px solid var(--line); }
+  .bar { max-width: 1180px; margin: 0 auto; padding: 10px 20px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+  .brand .logo { width: 32px; height: 32px; border-radius: 9px; margin: 0; flex: none; }
+  .brand b { font-size: 15px; letter-spacing: -.01em; display: block; line-height: 1.2; }
+  .sync { color: var(--muted); font-size: 12px; display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--s-full); box-shadow: 0 0 0 3px color-mix(in srgb, var(--s-full) 20%, transparent); flex: none; }
+  .dot.stale { background: var(--s-raw); box-shadow: 0 0 0 3px color-mix(in srgb, var(--s-raw) 25%, transparent); }
+  #saveState.bad { color: var(--s-miss-ink); }
+  .tabs { display: inline-flex; background: var(--track); border-radius: 11px; padding: 3px; gap: 2px; }
+  .tab { border: 0; background: none; color: var(--muted); padding: 7px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13.5px;
+         display: inline-flex; align-items: center; gap: 7px; transition: color .15s, background .15s; }
+  .tab:hover { color: var(--ink); }
+  .tab[aria-selected="true"] { background: var(--card); color: var(--ink); box-shadow: 0 1px 3px rgba(15,23,42,.12); }
+  .tab .badge { font-size: 11px; font-weight: 600; background: var(--line); color: var(--ink-2); border-radius: 99px; padding: 0 7px; line-height: 18px; }
+  .actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .b { background: var(--card); border: 1px solid var(--line); color: var(--ink); border-radius: 9px; height: 34px;
+       padding: 0 13px; font-size: 13px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; gap: 7px;
+       transition: border-color .15s, background .15s; box-shadow: var(--shadow-sm); }
+  .b:hover { border-color: var(--faint); }
+  .b.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600; }
+  .b.primary:hover { opacity: .92; }
+  .b.icon { width: 34px; padding: 0; justify-content: center; }
+  .b:disabled { opacity: .6; cursor: wait; }
+  .b svg { flex: none; }
 
-  main { max-width: 1120px; margin: 0 auto; padding: 18px 16px 60px; }
-  .toolbar { display: flex; gap: 10px 16px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  main { max-width: 1180px; margin: 0 auto; padding: 22px 20px 80px; }
+  .pagehead { margin-bottom: 16px; }
+  .pagehead h2 { margin: 0; font-size: 22px; letter-spacing: -.02em; }
+  .pagehead p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+
+  /* ============ KPI tiles ============ */
+  .kpis { display: grid; grid-template-columns: 1.25fr repeat(4, 1fr) 1.25fr; gap: 10px; margin-bottom: 18px; }
+  .kpi { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 13px 15px 14px; box-shadow: var(--shadow);
+         text-align: left; position: relative; min-width: 0; }
+  button.kpi { cursor: pointer; transition: border-color .15s; }
+  button.kpi:hover { border-color: var(--faint); }
+  button.kpi[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink), var(--shadow); }
+  .kpi .k { font-size: 12px; color: var(--muted); font-weight: 500; display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+  .kpi .v { font-size: 26px; font-weight: 650; letter-spacing: -.02em; margin-top: 3px; line-height: 1.15; font-variant-numeric: tabular-nums; }
+  .kpi .s { font-size: 12px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kpi .v.money { color: var(--money); }
+  .kpi .meter { margin-top: 9px; }
+  .sdot { width: 8px; height: 8px; border-radius: 3px; flex: none; display: inline-block; }
+  .sdot.full { background: var(--s-full); } .sdot.raw { background: var(--s-raw); } .sdot.missing { background: var(--s-miss); } .sdot.open { background: var(--s-open); }
+
+  /* ============ Toolbar ============ */
+  .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
   .searchbox { position: relative; flex: 1 1 320px; }
-  .searchbox svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); }
-  .searchbox input { padding-left: 36px; box-shadow: var(--shadow); }
-  .legend { display: flex; gap: 6px 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+  .searchbox svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--faint); pointer-events: none; }
+  .searchbox input { padding-left: 36px; height: 38px; box-shadow: var(--shadow-sm); }
+  .kbd { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--faint);
+         border: 1px solid var(--line); border-radius: 5px; padding: 0 5px; line-height: 17px; pointer-events: none; }
+  select { height: 38px; border: 1px solid var(--line); border-radius: 10px; background-color: var(--card); color: var(--ink);
+           font: inherit; font-size: 13px; padding: 0 30px 0 11px; box-shadow: var(--shadow-sm); cursor: pointer;
+           appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+           background-position: calc(100% - 15px) 16px, calc(100% - 10px) 16px; background-size: 5px 5px; background-repeat: no-repeat; }
+  .legend { display: flex; gap: 6px 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); align-items: center; }
   .legend span { display: inline-flex; align-items: center; gap: 6px; }
-  .sw { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
-  .sw.blue { background: var(--blue); } .sw.red { background: var(--red); }
-  .count { color: var(--muted); font-size: 12.5px; margin: 0 0 10px; }
-  #salesWarn { margin: 0 0 10px; min-height: 0; }
+  .sw { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+  .sw.painted { background: var(--painted); } .sw.raw { background: var(--raw); } .sw.left { background: var(--track); border: 1px solid var(--line); }
+  .count { color: var(--muted); font-size: 12.5px; margin: 0 0 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; min-height: 26px; }
+  #salesWarn { margin: 0 0 12px; min-height: 0; background: var(--s-miss-soft); border-radius: 10px; padding: 9px 12px; }
   #salesWarn:empty { display: none; }
 
   .confirm { display: flex; gap: 12px 20px; align-items: center; justify-content: space-between; flex-wrap: wrap;
-             background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 12px;
-             padding: 14px 16px; margin-bottom: 14px; box-shadow: var(--shadow); }
-  .confirm p { margin: 4px 0 0; color: var(--muted); font-size: 13px; max-width: 660px; }
+             background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; margin-bottom: 16px; box-shadow: var(--shadow-lg); }
+  .confirm .ic { width: 36px; height: 36px; border-radius: 10px; background: var(--painted-soft); color: var(--painted-ink); display: grid; place-items: center; flex: none; }
+  .confirm .txt { display: flex; gap: 14px; align-items: flex-start; flex: 1 1 420px; }
+  .confirm p { margin: 3px 0 0; color: var(--muted); font-size: 13px; }
   .confirm-actions { display: flex; gap: 8px; }
 
-  /* ---------- Status chips ---------- */
-  .st { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 2px 9px 2px 8px;
+  /* ============ Status chips ============ */
+  .st { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 2px 9px 2px 7px;
         border-radius: 99px; white-space: nowrap; line-height: 18px; }
-  .st::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-  .st.full { color: var(--green); background: var(--green-soft); }
-  .st.raw { color: var(--amber); background: var(--amber-soft); }
-  .st.missing { color: var(--red); background: var(--red-soft); }
-  .st.open { color: var(--muted); background: var(--grey-soft); }
-  .st b { font-weight: 700; }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .st::before { content: ""; width: 7px; height: 7px; border-radius: 50%; flex: none; }
+  .st.full { color: var(--s-full-ink); background: var(--s-full-soft); } .st.full::before { background: var(--s-full); }
+  .st.raw { color: var(--s-raw-ink); background: var(--s-raw-soft); } .st.raw::before { background: var(--s-raw); }
+  .st.missing { color: var(--s-miss-ink); background: var(--s-miss-soft); } .st.missing::before { background: var(--s-miss); }
+  .st.open { color: var(--s-open-ink); background: var(--s-open-soft); } .st.open::before { background: var(--s-open); }
 
-  /* ---------- Cards / dropdowns ---------- */
-  details { background: var(--card); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 10px; }
-  #list > details { box-shadow: var(--shadow); }
-  details details { border-radius: 10px; margin: 8px 0 0; background: var(--row); }
-  details details details { background: var(--card); }
-  summary { list-style: none; cursor: pointer; padding: 14px 16px; display: flex; align-items: center; gap: 14px; border-radius: 12px; }
-  summary:hover { background: color-mix(in srgb, var(--row) 60%, transparent); }
+  /* ============ Meters ============ */
+  .meter { display: flex; gap: 2px; height: 6px; border-radius: 99px; overflow: hidden; background: var(--track); min-width: 60px; }
+  .meter > i { display: block; height: 100%; background: var(--track); }
+  .meter .painted { background: var(--painted); } .meter .raw { background: var(--raw); }
+  .meter .full { background: var(--s-full); } .meter .sraw { background: var(--s-raw); } .meter .missing { background: var(--s-miss); } .meter .open { background: var(--s-open); }
+  .meter.thick { height: 8px; }
+  .cov { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .cov .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: 11.5px; color: var(--muted); white-space: nowrap; }
+  .cov .lbl b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* ============ Components page ============ */
+  summary { list-style: none; cursor: pointer; }
   summary::-webkit-details-marker { display: none; }
-  summary::before { content: ""; width: 7px; height: 7px; border-right: 2px solid var(--muted);
-                    border-bottom: 2px solid var(--muted); transform: rotate(-45deg); transition: transform .15s; flex: none; }
-  details[open] > summary::before { transform: rotate(45deg); }
-  .lvl { font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 600; }
-  .name { min-width: 0; flex: 1; }
-  .part { font-weight: 650; font-variant-numeric: tabular-nums; word-break: break-word; font-size: 15px; }
-  details details .part { font-size: 14px; }
-  .desc { color: var(--muted); font-size: 12.5px; }
-  .pill { flex: none; text-align: right; font-size: 12px; color: var(--muted); }
-  .pill b { display: block; font-size: 17px; color: var(--ink); font-variant-numeric: tabular-nums; }
-  .pill .done { color: var(--green); font-weight: 600; }
-  .chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--muted);
-          border: 1px solid var(--line); border-radius: 99px; padding: 0 8px; margin-left: 8px; vertical-align: 2px; font-weight: 500; }
-  .chip i { width: 9px; height: 9px; border-radius: 50%; border: 1px solid var(--muted); display: inline-block; }
-  .inner { padding: 0 14px 14px 34px; }
-  .vall { margin-top: 10px; display: inline-flex; align-items: center; gap: 6px; background: var(--card); color: var(--ink);
-          border: 1px solid var(--line); border-radius: 8px; padding: 5px 11px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
-  .vall:hover { border-color: var(--muted); }
+  .chev { width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; color: var(--faint); flex: none; transition: transform .18s, background .15s; }
+  details[open] > summary > .chev { transform: rotate(90deg); color: var(--ink); }
+  summary:hover > .chev { background: var(--hover); }
+
+  .part-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); margin-bottom: 10px; box-shadow: var(--shadow); transition: border-color .15s; }
+  .part-card:hover, .part-card[open] { border-color: color-mix(in srgb, var(--faint) 60%, var(--line)); }
+  .part-card > summary { display: grid; grid-template-columns: 22px minmax(200px, 1.6fr) minmax(190px, 1.2fr) minmax(150px, .9fr) auto; gap: 18px; align-items: center; padding: 16px 18px; border-radius: var(--r); }
+  .pname { min-width: 0; }
+  .pname .t { font-family: var(--mono); font-weight: 600; font-size: 14.5px; letter-spacing: -.01em; word-break: break-word; }
+  .pname .d { color: var(--muted); font-size: 12.5px; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tag { display: inline-block; font-size: 10.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--painted-ink);
+         background: var(--painted-soft); border-radius: 5px; padding: 0 6px; margin-left: 8px; vertical-align: 2px; font-family: var(--font); }
+  .pstat { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+  .pstat .counts { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12px; color: var(--muted); }
+  .pstat .counts span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .pstat .counts b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .vall { display: inline-flex; align-items: center; gap: 6px; background: var(--card); color: var(--ink);
+          border: 1px solid var(--line); border-radius: 8px; height: 30px; padding: 0 11px; font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .vall:hover { border-color: var(--faint); }
   .vall[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-  .vall span { font-weight: 400; opacity: .75; }
-  .allorders { border: 1px dashed var(--line); border-radius: 12px; padding: 12px; margin: 0 0 10px; background: var(--card); }
-  .allorders-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 0 2px 2px; }
+  .vall .n { font-weight: 500; opacity: .65; font-variant-numeric: tabular-nums; }
+  .part-body { padding: 0 18px 18px 58px; }
+  .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 600; margin: 4px 0 8px; }
 
-  /* ---------- Tables ---------- */
-  .tablewrap { overflow-x: auto; margin-top: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
-  table { width: 100%; border-collapse: collapse; min-width: 860px; }
-  th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .comp { border: 1px solid var(--line); border-radius: 12px; margin-bottom: 8px; background: var(--card); }
+  .comp > summary { display: grid; grid-template-columns: 22px minmax(0, 1fr) minmax(140px, 220px); gap: 14px; align-items: center; padding: 11px 14px; border-radius: 12px; }
+  .comp > summary:hover, .kit > summary:hover { background: var(--hover); }
+  .comp .t, .kit .t { font-family: var(--mono); font-weight: 600; font-size: 13.5px; }
+  .comp .d, .kit .d { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lvl { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--faint); font-weight: 600; font-family: var(--font); margin-right: 8px; }
+  .comp-body { padding: 2px 14px 14px 50px; }
+  .kit { border: 1px solid var(--line-2); border-radius: 10px; background: var(--row); margin-top: 8px; }
+  .kit > summary { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto minmax(130px, 200px); gap: 14px; align-items: center; padding: 10px 12px; border-radius: 10px; }
+  .kit-body { padding: 0 12px 12px; }
+  .swatch { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink-2); border: 1px solid var(--line);
+            background: var(--card); border-radius: 99px; padding: 1px 9px 1px 4px; font-weight: 500; margin-left: 8px; vertical-align: 1px; font-family: var(--font); }
+  .swatch i { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0,0,0,.18); }
+  @media (prefers-color-scheme: dark) { .swatch i { border-color: rgba(255,255,255,.35); } }
+  .stock { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .stock span { font-size: 11.5px; border-radius: 6px; padding: 2px 7px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .stock .p { background: var(--painted-soft); color: var(--painted-ink); }
+  .stock .r { background: var(--raw-soft); color: var(--raw-ink); }
+
+  .allorders { border: 1px solid var(--line); border-radius: 12px; padding: 12px 12px 4px; margin: 0 0 14px; background: var(--row); }
+  .allorders-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 0 2px 8px; font-size: 13px; flex-wrap: wrap; }
+
+  /* ============ Tables ============ */
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
+  table { width: 100%; border-collapse: separate; border-spacing: 0; }
+  .ktable { min-width: 840px; }
+  th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--line-2); white-space: nowrap; font-variant-numeric: tabular-nums; vertical-align: middle; }
   th { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); background: var(--row); font-weight: 600; }
-  th.num, td.num { text-align: right; }
-  th.c, td.c { text-align: center; }
-  th.blue, td.blue { color: var(--blue); } th.red, td.red { color: var(--red); }
-  td.green, th.green { color: var(--green); } td.green { font-weight: 650; }
-  td.cost, th.cost { color: var(--muted); }
-  tbody tr:last-child td { border-bottom: 0; }
-  tfoot td { font-weight: 700; background: var(--row); border-top: 1px solid var(--line); border-bottom: 0; }
-  .na { color: var(--muted); font-weight: 400; }
+  th.num, td.num { text-align: right; } th.c, td.c { text-align: center; }
+  th.painted { color: var(--painted-ink); } th.raw { color: var(--raw-ink); }
+  th.money, td.money { color: var(--money); } td.money { font-weight: 600; }
+  th.cost, td.cost { color: var(--muted); }
+  .pc { color: var(--painted-ink); font-weight: 600; } .rc { color: var(--raw-ink); font-weight: 600; }
+  tbody tr:last-child > td { border-bottom: 0; }
+  tbody tr:not(.detail):not(.grp):hover > td { background: var(--hover); }
+  tfoot td { font-weight: 650; background: var(--row); border-top: 1px solid var(--line); border-bottom: 0; }
+  .na, .zero { color: var(--faint); font-weight: 400; }
 
-  .step { display: inline-flex; align-items: center; border: 1px solid; border-radius: 9px; overflow: hidden; }
-  .step.blue { border-color: var(--blue); } .step.red { border-color: var(--red); }
-  .step button { width: 30px; height: 30px; border: 0; font-size: 17px; line-height: 1; cursor: pointer; }
-  .step.blue button { background: var(--blue-soft); color: var(--blue); }
-  .step.red button { background: var(--red-soft); color: var(--red); }
-  .step button:disabled { opacity: .35; cursor: not-allowed; }
-  .step input { width: 46px; height: 30px; border: 0; border-radius: 0; padding: 0 4px; text-align: center;
-                background: var(--card); font-weight: 650; -moz-appearance: textfield; }
-  .step.blue input { color: var(--blue); } .step.red input { color: var(--red); }
+  .step { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; background: var(--card); }
+  .step button { width: 28px; height: 28px; border: 0; font-size: 16px; line-height: 1; cursor: pointer; background: transparent; color: var(--muted); transition: background .12s, color .12s; }
+  .step.painted button:hover:not(:disabled) { background: var(--painted-soft); color: var(--painted-ink); }
+  .step.raw button:hover:not(:disabled) { background: var(--raw-soft); color: var(--raw-ink); }
+  .step button:disabled { opacity: .3; cursor: not-allowed; }
+  .step input { width: 44px; height: 28px; border: 0; border-left: 1px solid var(--line-2); border-right: 1px solid var(--line-2); border-radius: 0;
+                padding: 0 4px; text-align: center; background: transparent; font-weight: 650; -moz-appearance: textfield; font-variant-numeric: tabular-nums; }
+  .step.painted { box-shadow: inset 3px 0 0 var(--painted); } .step.raw { box-shadow: inset 3px 0 0 var(--raw); }
+  .step.painted input { color: var(--painted-ink); } .step.raw input { color: var(--raw-ink); }
+  .step.has.painted { background: var(--painted-soft); border-color: color-mix(in srgb, var(--painted) 35%, var(--line)); }
+  .step.has.raw { background: var(--raw-soft); border-color: color-mix(in srgb, var(--raw) 35%, var(--line)); }
   .step input::-webkit-outer-spin-button, .step input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-  .step input:focus { outline: none; box-shadow: inset 0 0 0 2px currentColor; }
+  .step input:focus { outline: none; box-shadow: inset 0 0 0 2px var(--focus); }
 
-  .pools { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-top: 10px; }
-  .pool { border-radius: 10px; padding: 11px 13px; font-size: 13px; border: 1px solid; }
-  .pool.blue { background: var(--blue-soft); border-color: color-mix(in srgb, var(--blue) 45%, transparent); }
-  .pool.red { background: var(--red-soft); border-color: color-mix(in srgb, var(--red) 45%, transparent); }
-  .pool h4 { margin: 0 0 6px; font-size: 13px; }
-  .pool.blue h4 { color: var(--blue); } .pool.red h4 { color: var(--red); }
-  .pool dl { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; margin: 0; }
-  .pool dt { color: var(--muted); } .pool dd { margin: 0; text-align: right; font-weight: 650; font-variant-numeric: tabular-nums; }
-  .pool .note { margin-top: 6px; color: var(--muted); font-size: 12px; }
-  .pool .warn { margin-top: 6px; color: var(--red); font-weight: 600; font-size: 12px; }
+  .pools { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; margin-top: 10px; }
+  .pool { border-radius: 10px; padding: 12px 14px; font-size: 12.5px; border: 1px solid var(--line); background: var(--card); }
+  .pool h4 { margin: 0 0 8px; font-size: 12.5px; display: flex; align-items: center; gap: 8px; font-weight: 600; }
+  .pool .meter { margin: 0 0 9px; }
+  .pool dl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px 12px; margin: 0; }
+  .pool dt { color: var(--muted); font-size: 11.5px; } .pool dd { margin: 0; font-weight: 650; font-variant-numeric: tabular-nums; font-size: 15px; }
+  .pool .note { margin-top: 8px; color: var(--muted); font-size: 12px; }
+  .pool .warn { margin-top: 8px; color: var(--s-miss-ink); font-weight: 600; font-size: 12px; }
 
-  /* order toggle inside kit tables */
-  .otog { display: inline-flex; align-items: center; gap: 8px; background: none; border: 0; padding: 0; color: var(--ink);
-          font-weight: 650; cursor: pointer; text-align: left; }
-  .otog::before { content: ""; width: 6px; height: 6px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted);
-                  transform: rotate(-45deg); transition: transform .15s; flex: none; }
-  .otog[aria-expanded="true"]::before { transform: rotate(45deg); }
-  .otog small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
-  tr.detail > td { background: var(--row); padding: 12px 12px 16px; white-space: normal; }
+  .otog { display: inline-flex; align-items: center; gap: 9px; background: none; border: 0; padding: 0; color: var(--ink); cursor: pointer; text-align: left; }
+  .otog .chev { width: 18px; height: 18px; }
+  .otog[aria-expanded="true"] .chev { transform: rotate(90deg); color: var(--ink); }
+  .otog b { font-family: var(--mono); font-weight: 600; font-size: 13px; }
+  .otog small { display: block; font-weight: 400; color: var(--muted); font-size: 11.5px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+  tr.detail > td { background: var(--row); padding: 14px; white-space: normal; }
   .dwrap { width: 0; min-width: 100%; }
 
-  /* ---------- Order view ---------- */
-  .ohead { display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center; font-size: 13px; color: var(--muted); }
-  .ohead b { color: var(--ink); }
-  .ohead b.green { color: var(--green); }
-  .otable { min-width: 760px; }
-  .otable th, .otable td { padding: 7px 10px; font-size: 13px; }
-  .otable tr.grp td { background: var(--row); border-top: 1px solid var(--line); vertical-align: top; padding-top: 10px; padding-bottom: 10px; }
-  .otable tbody tr.grp:first-child td { border-top: 0; }
-  .otable tr.grp td b { font-size: 14px; }
-  .otable tr.grp .desc { font-size: 11.5px; font-weight: 400; }
-  .otable tr.sub td:nth-child(2) { padding-left: 24px; }
-  .otable tr.me td { background: color-mix(in srgb, var(--blue-soft) 70%, transparent); }
-  .go { background: none; border: 0; padding: 0; color: var(--ink); text-decoration: underline; text-decoration-color: var(--line);
-        text-underline-offset: 3px; cursor: pointer; text-align: left; font-weight: 600; }
-  .go:hover { text-decoration-color: currentColor; }
-  details.extras { background: var(--card); margin-top: 10px; }
-  details.extras > summary { padding: 10px 14px; font-size: 13px; }
-  details.extras .inner { padding: 0 12px 12px; }
-  .xtable { min-width: 620px; }
+  /* ============ Order view ============ */
+  .ofacts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-bottom: 12px; }
+  .fact { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; min-width: 0; }
+  .fact .k { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; font-weight: 600; }
+  .fact .v { font-size: 14.5px; font-weight: 650; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+  .fact .v.money { color: var(--money); }
+  .fact.wide { grid-column: span 2; }
+  .fact .meter { margin-top: 6px; }
+  .otable { min-width: 860px; }
+  .otable th, .otable td { padding: 8px 11px; font-size: 13px; }
+  .otable tr.grp > td { background: var(--row); border-top: 1px solid var(--line); vertical-align: top; padding-top: 11px; padding-bottom: 11px; }
+  .otable tbody tr.grp:first-child > td { border-top: 0; }
+  .otable .pn { font-family: var(--mono); font-weight: 600; font-size: 13.5px; }
+  .otable tr.grp .d { color: var(--muted); font-size: 11.5px; font-weight: 400; }
+  .otable .u { color: var(--muted); font-size: 11px; font-weight: 400; display: block; }
+  .otable tr.sub > td:nth-child(2) { padding-left: 28px; position: relative; }
+  .otable tr.sub > td:nth-child(2)::before { content: ""; position: absolute; left: 13px; top: 0; height: 50%; width: 9px; border-left: 1px solid var(--line); border-bottom: 1px solid var(--line); border-bottom-left-radius: 5px; }
+  .otable tr.me > td { background: color-mix(in srgb, var(--painted-soft) 80%, transparent); }
+  .otable td.kitc { color: var(--ink-2); font-family: var(--mono); font-size: 12.5px; }
+  .go { background: none; border: 0; padding: 0; color: var(--ink); cursor: pointer; text-align: left; font-family: var(--mono); font-weight: 600; font-size: 12.5px;
+        text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+  .go:hover { color: var(--painted-ink); text-decoration-color: currentColor; }
+  .me-tag { font-family: var(--font); font-size: 10.5px; font-weight: 600; color: var(--painted-ink); background: var(--painted-soft); border-radius: 5px; padding: 1px 6px; margin-left: 6px; }
+  details.extras { margin-top: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
+  details.extras > summary { display: flex; align-items: center; gap: 10px; padding: 10px 12px; font-size: 13px; border-radius: 10px; }
+  details.extras > summary:hover { background: var(--hover); }
+  details.extras > summary .grow { flex: 1; min-width: 0; }
+  details.extras .xin { padding: 0 10px 10px; }
+  .xtable { min-width: 640px; }
   .xtable th, .xtable td { padding: 7px 10px; font-size: 13px; }
-  tr.flash > td { animation: flash 2.2s ease-out; }
-  @keyframes flash { 0%, 40% { background: var(--amber-soft); } 100% { background: transparent; } }
+  .xtable td.item { font-family: var(--mono); font-weight: 600; font-size: 12.5px; }
+  tr.flash > td { animation: flash 2.4s ease-out; }
+  @keyframes flash { 0%, 45% { background: var(--s-raw-soft); } 100% { background: transparent; } }
 
-  /* ---------- All Orders page ---------- */
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
-  .stat { text-align: left; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px;
-          cursor: pointer; box-shadow: var(--shadow); color: var(--ink); }
-  .stat b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; margin-top: 2px; }
-  .stat .st { padding: 0; background: none; }
-  .stat[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
-  details.ocard > summary { gap: 16px; }
-  .onum { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .oparts { flex: 1.3; min-width: 0; color: var(--ink-2); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .oright { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; font-size: 12px; color: var(--muted); }
-  .oright .money { color: var(--green); font-weight: 650; font-size: 13px; }
-  details.ocard > .inner, details.ord > .inner { padding-left: 16px; }
+  /* ============ Order cards ============ */
+  .ocard { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); margin-bottom: 8px; box-shadow: var(--shadow); }
+  .ocard:hover, .ocard[open] { border-color: color-mix(in srgb, var(--faint) 60%, var(--line)); }
+  .ocard > summary { display: grid; grid-template-columns: 22px 120px minmax(0, 1.4fr) minmax(150px, 1fr) 130px 120px; gap: 16px; align-items: center; padding: 13px 16px; border-radius: var(--r); }
+  .ocard .onum { font-family: var(--mono); font-size: 15px; font-weight: 600; }
+  .ocard .odate { color: var(--muted); font-size: 12px; }
+  .ocard .ocust { font-weight: 600; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ocard .oparts { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--mono); }
+  .ocard .oval { text-align: right; font-weight: 650; color: var(--money); font-variant-numeric: tabular-nums; }
+  .ocard .oval small { display: block; color: var(--muted); font-weight: 400; font-size: 11px; }
+  .ocard-body { padding: 0 16px 16px 54px; }
+  .allorders .ocard { box-shadow: none; }
 
-  .empty { color: var(--muted); text-align: center; padding: 48px 0; }
-  #toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--accent); color: var(--on-accent);
-           padding: 10px 14px 10px 16px; border-radius: 10px; font-size: 14px; max-width: calc(100% - 32px); z-index: 9;
-           display: flex; align-items: center; gap: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.18); }
-  #toast button { background: none; border: 1px solid currentColor; color: inherit; border-radius: 7px; padding: 3px 10px; font-weight: 600; cursor: pointer; }
+  .empty { color: var(--muted); text-align: center; padding: 56px 0; border: 1px dashed var(--line); border-radius: var(--r); background: var(--card); }
+  .skeleton { height: 74px; border-radius: var(--r); margin-bottom: 10px; background: linear-gradient(90deg, var(--card), var(--hover), var(--card)); background-size: 200% 100%; animation: sk 1.2s infinite linear; border: 1px solid var(--line); }
+  @keyframes sk { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+  #toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: var(--accent); color: var(--on-accent);
+           padding: 10px 12px 10px 16px; border-radius: 12px; font-size: 13.5px; max-width: calc(100% - 32px); z-index: 30;
+           display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow-lg); }
+  #toast button { background: color-mix(in srgb, var(--on-accent) 14%, transparent); border: 0; color: inherit; border-radius: 8px; padding: 5px 11px; font-weight: 600; cursor: pointer; }
 
-  @media (max-width: 640px) {
-    .bar { padding: 10px 12px; }
-    .tabs { order: 3; width: 100%; } .tab { flex: 1; }
-    .inner { padding-left: 12px; padding-right: 10px; }
-    summary { padding: 12px; gap: 10px; }
-    .oparts { display: none; }
+  @media (max-width: 1020px) {
+    .kpis { grid-template-columns: repeat(3, 1fr); }
+    .part-card > summary { grid-template-columns: 22px minmax(0, 1fr) minmax(150px, 220px) auto; }
+    .part-card > summary .pcov { display: none; }
+    .ocard > summary { grid-template-columns: 22px 110px minmax(0, 1fr) 130px 110px; }
+    .ocard > summary .ocovw { display: none; }
   }
+  @media (max-width: 700px) {
+    .bar { grid-template-columns: 1fr auto; padding: 10px 14px; }
+    .tabs { grid-column: 1 / -1; order: 3; width: 100%; } .tab { flex: 1; justify-content: center; }
+    .b.lbl span { display: none; } .b.lbl { width: 34px; padding: 0; justify-content: center; }
+    main { padding: 16px 14px 80px; }
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+    .kpis > :first-child, .kpis > :last-child { grid-column: 1 / -1; }
+    .fact.wide { grid-column: auto; }
+    .kpi .v { font-size: 22px; }
+    .kbd { display: none; }
+    .part-card > summary { grid-template-columns: 22px minmax(0, 1fr); gap: 10px; padding: 14px; }
+    .part-card > summary .pstat, .part-card > summary .pact { grid-column: 2; }
+    .part-body { padding: 0 12px 14px; }
+    .comp > summary { grid-template-columns: 22px minmax(0, 1fr); } .comp > summary .cov { grid-column: 2; }
+    .comp-body { padding: 2px 10px 12px; }
+    .kit > summary { grid-template-columns: 22px minmax(0, 1fr); } .kit > summary .stock, .kit > summary .cov { grid-column: 2; justify-content: flex-start; }
+    .ocard > summary { grid-template-columns: 22px minmax(0, 1fr) auto; gap: 6px 12px; }
+    .ocard > summary .ocustw { grid-column: 2 / -1; } .ocard > summary .ostat { grid-column: 2; } .ocard > summary .oval { grid-row: 1; grid-column: 3; }
+    .ocard-body { padding: 0 12px 14px; }
+  }
+  @media (prefers-reduced-motion: reduce) { *, *::before { transition: none !important; animation: none !important; } }
 </style>
 </head>
 <body>
@@ -235,11 +345,11 @@
 <!-- ============ LOGIN ============ -->
 <section id="login">
   <form class="login-card" id="loginForm" autocomplete="off">
-    <div class="lock" aria-hidden="true">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+    <div class="logo" aria-hidden="true">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg>
     </div>
-    <h1>Kit Tracker</h1>
-    <p class="sub">Restricted. Sign in to continue.</p>
+    <h1>Product Allocation</h1>
+    <p class="sub">Restricted area. Sign in to continue.</p>
     <label for="u">Username</label>
     <input id="u" name="u" required autocomplete="off" spellcheck="false" autocapitalize="off">
     <label for="p">Password</label>
@@ -254,45 +364,62 @@
   <header>
     <div class="bar">
       <div class="brand">
-        <span class="brand-mark" aria-hidden="true">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg>
+        <span class="logo" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg>
         </span>
-        <div><b>Kit Tracker</b>
-          <small><span class="dot" id="dot"></span><span id="updated">Loading…</span><span id="saveState"></span></small></div>
+        <div style="min-width:0"><b>Product Allocation</b>
+          <div class="sync"><span class="dot" id="dot"></span><span id="updated">Loading…</span><span id="saveState"></span></div></div>
       </div>
       <nav class="tabs" role="tablist" aria-label="Pages">
-        <button class="tab" role="tab" id="tabComponents" data-view="components" aria-selected="true">Components</button>
-        <button class="tab" role="tab" id="tabOrders" data-view="orders" aria-selected="false">All Orders<span id="orderCount"></span></button>
+        <button class="tab" role="tab" id="tabComponents" data-view="components" aria-selected="true">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          Components</button>
+        <button class="tab" role="tab" id="tabOrders" data-view="orders" aria-selected="false">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5h11M9 12h11M9 19h11"/><circle cx="4.5" cy="5" r="1.2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="4.5" cy="19" r="1.2"/></svg>
+          All Orders <span class="badge" id="orderCount">–</span></button>
       </nav>
       <div class="actions">
-        <button class="link fill" id="autofillBtn" type="button">Autofill</button>
-        <button class="link" id="refreshBtn" type="button">Refresh</button>
-        <button class="link" id="logoutBtn" type="button">Sign out</button>
+        <button class="b primary lbl" id="autofillBtn" type="button" title="Autofill all orders">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>
+          <span>Autofill</span></button>
+        <button class="b icon" id="refreshBtn" type="button" title="Refresh now" aria-label="Refresh">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
+        <button class="b icon" id="logoutBtn" type="button" title="Sign out" aria-label="Sign out">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 17l-5-5 5-5M5 12h11"/></svg></button>
       </div>
     </div>
   </header>
   <main>
     <div id="confirm" class="confirm hidden" role="dialog" aria-labelledby="confirmTitle">
+      <div class="txt"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="m12 3 1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/></svg></span>
       <div><b id="confirmTitle">Autofill all orders?</b>
-      <p>This replaces every current allocation. Lowest order numbers are filled first: painted stock first, then raw for whatever is still missing. You can undo it right after.</p></div>
-      <div class="confirm-actions"><button class="link" id="confirmNo" type="button">Cancel</button>
-      <button class="link fill" id="confirmYes" type="button">Autofill now</button></div>
+      <p>This replaces every current allocation. Lowest order numbers are filled first: built stock first, then raw for whatever is still missing. You can undo it right after.</p></div></div>
+      <div class="confirm-actions"><button class="b" id="confirmNo" type="button">Cancel</button>
+      <button class="b primary" id="confirmYes" type="button">Autofill now</button></div>
     </div>
+    <div class="pagehead"><h2 id="pageTitle">Components</h2><p id="pageSub"></p></div>
+    <div id="kpis"></div>
     <div class="toolbar">
       <div class="searchbox">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input id="search" type="search" placeholder="Search part, component, kit, customer or order number…" autocomplete="off" aria-label="Search">
+        <input id="search" type="search" placeholder="Search parts, components, kits, customers, orders…" autocomplete="off" aria-label="Search">
+        <span class="kbd" aria-hidden="true">/</span>
       </div>
+      <select id="sort" aria-label="Sort orders" class="hidden">
+        <option value="order">Sort: Order number</option>
+        <option value="status">Sort: Needs attention first</option>
+        <option value="value">Sort: Order value</option>
+        <option value="date">Sort: Order date</option>
+      </select>
       <div class="legend">
-        <span><i class="sw blue"></i>Painted (per colour)</span>
-        <span><i class="sw red"></i>Raw (shared by colours)</span>
-        <span class="st full">Fulfilled</span><span class="st raw">Partial Raw</span><span class="st missing">Parts Missing</span><span class="st open">Unassigned</span>
+        <span><i class="sw painted"></i>Built</span>
+        <span><i class="sw raw"></i>Raw</span>
+        <span><i class="sw left"></i>Still needed</span>
       </div>
     </div>
     <p class="err" id="salesWarn" role="status"></p>
-    <div id="stats"></div>
-    <p class="count" id="count"></p>
-    <div id="list"></div>
+    <div class="count" id="count"></div>
+    <div id="list"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
   </main>
 </section>
 <div id="toast" class="hidden" role="status"></div>
@@ -313,13 +440,13 @@
   };
   let token = store.get('kt_token');
   let leaves = [], extras = [], inv = { kits: {}, comps: {}, items: {} }, alloc = {};
-  let pending = {};            // key -> qty, changed here but not yet saved
-  let saving = false, saveTimer = null, refreshTimer = null, needsRender = false;
+  let pending = {};
+  let saving = false, saveTimer = null, refreshTimer = null, needsRender = false, loaded = false;
   let view = (location.hash === '#orders') ? 'orders' : 'components';
-  let orderFilter = 'all';
+  let orderFilter = 'all', orderSort = store.get('kt_sort') || 'order';
   const openKeys = new Set();
   const openOrders = new Set();
-  let D = null;                // derived data for the current render (statuses etc.)
+  let D = null;
 
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
   const fmt = n => Number(n).toLocaleString(undefined, { maximumFractionDigits: 2 });
@@ -327,23 +454,42 @@
   const pKey = (order, kit) => ['P', order, kit].join('|');
   const rKey = (order, kit, comp) => ['R', order, kit, comp].join('|');
   const q = k => alloc[k] || 0;
-  const need = req => Math.max(0, Math.ceil(Number(req) - 1e-9));   // 0.5 required still needs 1 part
+  const need = req => Math.max(0, Math.ceil(Number(req) - 1e-9));
   const money = n => '$' + Number(n || 0).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const moneyShort = n => n >= 100000 ? '$' + (n / 1000).toLocaleString('en-CA', { maximumFractionDigits: 0 }) + 'k'
+                        : n >= 10000 ? '$' + (n / 1000).toLocaleString('en-CA', { maximumFractionDigits: 1 }) + 'k' : money(n);
   const plural = (n, w) => fmt(n) + ' ' + w + (n === 1 ? '' : 's');
-  // total_cost_cdn is the cost of the whole line (qty required × unit cost), so divide to get one unit.
+  const pct = (a, b) => (b ? Math.round(a / b * 100) : 100);
+  const cleanPn = s => String(s).replace(/^\s*-\s*/, '');
+  const isFitKit = pn => /[A-Z]FK/i.test(pn);
   const unitCost = l => (l.req ? (l.cost || 0) / l.req : 0);
   const lineFill = l => {
     const p = q(pKey(l.order, l.kit)), r = q(rKey(l.order, l.kit, l.comp));
     return { p, r, cost: (p + r) * unitCost(l), left: Math.max(0, need(l.req) - p - r) };
   };
   const rowId = (pn, comp, kit, order) => 'p:' + pn + '|c:' + comp + '|k:' + kit + '|o:' + order;
+  const CHEV = '<span class="chev" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span>';
 
   // ---------- Statuses ----------
-  // full = all painted · raw = covered but some raw (can't ship yet) · open = stock exists, not assigned · missing = not enough stock
+  // full = all built · raw = covered but some raw (can't ship yet) · open = stock exists, not assigned · missing = not enough stock
   const ST = { full: 'Fulfilled', raw: 'Partial Raw', open: 'Unassigned', missing: 'Parts Missing' };
   const RANK = { full: 0, raw: 1, open: 2, missing: 3 };
+  const ORDER_OF = ['full', 'raw', 'missing', 'open'];
   const worst = list => list.reduce((w, s) => (RANK[s] > RANK[w] ? s : w), 'full');
   const chip = (s, extra, title, label) => '<span class="st ' + s + '"' + (title ? ' title="' + esc(title) + '"' : '') + '>' + (label || ST[s]) + (extra ? ' · ' + extra : '') + '</span>';
+
+  // Coverage meter: built | raw | still needed. Hover shows the numbers.
+  function meter(p, r, total, thick) {
+    const rest = Math.max(0, total - p - r);
+    const seg = (cls, v, name) => v > 0 ? '<i class="' + cls + '" style="flex:' + v + '" title="' + name + ': ' + fmt(v) + '"></i>' : '';
+    return '<div class="meter' + (thick ? ' thick' : '') + '" role="img" aria-label="' + fmt(p) + ' built, ' + fmt(r) + ' raw, ' + fmt(rest) + ' still needed">' +
+      seg('painted', p, 'Built') + seg('raw', r, 'Raw') + seg('', rest, 'Still needed') + '</div>';
+  }
+  function statusMeter(n, extraStyle) {
+    const cls = { full: 'full', raw: 'sraw', missing: 'missing', open: 'open' };
+    return '<div class="meter thick"' + (extraStyle ? ' style="' + extraStyle + '"' : '') + ' role="img" aria-label="' + ORDER_OF.map(k => n[k] + ' ' + ST[k]).join(', ') + '">' +
+      ORDER_OF.filter(k => n[k]).map(k => '<i class="' + cls[k] + '" style="flex:' + n[k] + '" title="' + ST[k] + ': ' + n[k] + '"></i>').join('') + '</div>';
+  }
 
   function derive() {
     const kitUsed = {}, compUsed = {}, seenP = {};
@@ -364,7 +510,7 @@
       line.set(l, { f, s });
     });
 
-    // Kit-level items (screws, boxes…) are given out automatically, lowest order number first.
+    // Kit-level items (screws, boxes…) are set aside automatically, lowest order number first.
     const left = {};
     Object.keys(inv.items || {}).forEach(i => { left[i] = inv.items[i].onhand; });
     const extra = new Map();
@@ -378,11 +524,28 @@
     const add = (o, src) => orders[o] || (orders[o] = { order: o, cust: src.cust || '', date: src.date || '', lines: [], extras: [], parts: new Set() });
     leaves.forEach(l => { const o = add(l.order, l); o.lines.push(l); o.parts.add(l.pn); if (!o.cust && l.cust) o.cust = l.cust; });
     extras.forEach(x => { if (orders[x.order]) { orders[x.order].extras.push(x); orders[x.order].parts.add(x.pn); } });
+
+    const K = { lines: 0, covered: 0, sale: 0, saleMax: 0 };
     Object.values(orders).forEach(o => {
       o.status = worst(o.lines.map(l => line.get(l).s).concat(o.extras.map(x => extra.get(x).s)));
       o.done = o.lines.filter(l => !line.get(l).f.left).length;
+      o.p = 0; o.r = 0; o.need = 0; o.cost = 0; o.costTotal = 0;
+      o.lines.forEach(l => { const f = line.get(l).f; o.p += f.p; o.r += f.r; o.need += need(l.req); o.cost += f.cost; o.costTotal += l.cost || 0; });
+      // Sale value per part = sale price × complete units its components can build.
+      o.partInfo = {}; o.sale = 0; o.saleMax = 0; o.priced = false;
+      const byPart = {};
+      o.lines.forEach(l => (byPart[l.pn] || (byPart[l.pn] = [])).push(l));
+      Object.keys(byPart).forEach(pn => {
+        const g = byPart[pn], f0 = g[0], ordered = f0.oqty;
+        let units = null;
+        if (ordered) units = Math.min(ordered, ...g.map(l => { const x = line.get(l).f, per = l.req / ordered; return per > 0 ? Math.floor((x.p + x.r) / per + 1e-9) : ordered; }));
+        const sale = f0.price != null && units != null ? f0.price * units : null;
+        if (sale != null) { o.sale += sale; o.saleMax += f0.price * ordered; o.priced = true; }
+        o.partInfo[pn] = { units, ordered, sale };
+      });
+      K.lines += o.lines.length; K.covered += o.done; K.sale += o.sale; K.saleMax += o.saleMax;
     });
-    return { line, extra, orders, kitAvail, compAvail };
+    return { line, extra, orders, kitAvail, compAvail, K };
   }
   // Status of one part inside one order (its component lines + its kit-level items).
   function partStatus(pn, order) {
@@ -433,8 +596,8 @@
 
   function showLogin(msg) {
     clearInterval(refreshTimer); refreshTimer = null; clearTimeout(saveTimer);
-    token = null; store.del('kt_token'); leaves = []; extras = []; alloc = {}; pending = {};
-    $('list').innerHTML = ''; $('stats').innerHTML = ''; $('saveState').textContent = '';
+    token = null; store.del('kt_token'); leaves = []; extras = []; alloc = {}; pending = {}; loaded = false;
+    $('list').innerHTML = ''; $('kpis').innerHTML = ''; $('saveState').textContent = '';
     $('app').classList.add('hidden'); $('login').classList.remove('hidden');
     $('loginErr').textContent = msg || '';
     $('u').focus();
@@ -460,13 +623,24 @@
     view = v;
     $('tabComponents').setAttribute('aria-selected', v === 'components');
     $('tabOrders').setAttribute('aria-selected', v === 'orders');
+    $('sort').classList.toggle('hidden', v !== 'orders');
+    $('pageTitle').textContent = v === 'orders' ? 'All Orders' : 'Components';
+    $('pageSub').textContent = v === 'orders'
+      ? 'Every order in the system with its status, coverage and value. Open one to see everything in it.'
+      : 'Every part on open orders, broken down into components, kits and orders. Assign built or raw stock to each order.';
     try { history.replaceState(null, '', v === 'orders' ? '#orders' : '#components'); } catch (e) {}
     if (!quiet) { window.scrollTo(0, 0); safeRender(true); }
   }
   document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => setView(t.dataset.view)));
+  $('sort').value = orderSort;
+  $('sort').addEventListener('change', () => { orderSort = $('sort').value; store.set('kt_sort', orderSort); safeRender(true); });
+  document.addEventListener('keydown', e => {
+    if (e.key === '/' && !e.target.matches('input, select, textarea') && !$('app').classList.contains('hidden')) { e.preventDefault(); $('search').focus(); }
+    if (e.key === 'Escape' && e.target === $('search')) { $('search').value = ''; safeRender(true); }
+  });
 
   // ---------- Autofill ----------
-  $('autofillBtn').addEventListener('click', () => { $('confirm').classList.remove('hidden'); $('confirmYes').focus(); });
+  $('autofillBtn').addEventListener('click', () => { $('confirm').classList.remove('hidden'); window.scrollTo({ top: 0, behavior: 'smooth' }); $('confirmYes').focus(); });
   $('confirmNo').addEventListener('click', () => $('confirm').classList.add('hidden'));
   $('confirmYes').addEventListener('click', async () => {
     const btn = $('confirmYes');
@@ -479,11 +653,10 @@
       saving = false;
       if (!r.ok) { if (r.error === 'SESSION_EXPIRED') return showLogin('Your session expired. Please sign in again.'); throw new Error(r.error); }
       applySnapshot(r);
-      $('saveState').classList.remove('bad'); $('saveState').textContent = ' · All changes saved';
+      $('saveState').classList.remove('bad'); $('saveState').textContent = ' · Saved';
       $('confirm').classList.add('hidden');
       const before = r.before || {};
-      const done = leaves.filter(l => !lineFill(l).left).length;
-      toast('Autofilled: ' + done + ' of ' + leaves.length + ' lines covered.', 'Undo', () => undoTo(before));
+      toast('Autofilled: ' + D.K.covered + ' of ' + D.K.lines + ' lines covered.', 'Undo', () => undoTo(before));
     } catch (err) {
       saving = false;
       toast('Autofill failed. Nothing was changed. Try again.');
@@ -512,14 +685,15 @@
     Object.keys(pending).forEach(k => { pending[k] > 0 ? alloc[k] = pending[k] : delete alloc[k]; });
     $('salesWarn').textContent = r.salesError || '';
     $('dot').classList.remove('stale');
-    $('updated').textContent = 'Updated ' + new Date(r.updated).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    $('updated').textContent = 'Live · updated ' + new Date(r.updated).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    loaded = true;
     safeRender();
   }
 
   let loading = false;
   async function load() {
     if (loading || !token || saving || Object.keys(pending).length) return;
-    loading = true;
+    loading = true; $('refreshBtn').disabled = true;
     try {
       const r = await api({ action: 'data', token });
       if (!r.ok) { if (r.error === 'SESSION_EXPIRED') return showLogin('Your session expired. Please sign in again.'); throw new Error(r.error); }
@@ -527,7 +701,7 @@
     } catch (err) {
       $('dot').classList.add('stale');
       $('updated').textContent = 'Couldn’t refresh, retrying';
-    } finally { loading = false; }
+    } finally { loading = false; $('refreshBtn').disabled = false; }
   }
 
   // ---------- Limits (same rules the server enforces) ----------
@@ -565,7 +739,7 @@
     if (got === cur) { safeRender(true); return; }
     got > 0 ? alloc[key] = got : delete alloc[key];
     pending[key] = got;
-    $('saveState').classList.remove('bad'); $('saveState').textContent = ' · Unsaved changes…';
+    $('saveState').classList.remove('bad'); $('saveState').textContent = ' · Unsaved…';
     safeRender(true);
     clearTimeout(saveTimer); saveTimer = setTimeout(flush, SAVE_DELAY_MS);
   }
@@ -587,7 +761,7 @@
       saving = false;
       applySnapshot(r);
       if (r.adjusted && r.adjusted.length) toast('Some amounts were reduced to match what is on hand.');
-      $('saveState').textContent = Object.keys(pending).length ? ' · Unsaved changes…' : ' · All changes saved';
+      $('saveState').textContent = Object.keys(pending).length ? ' · Unsaved…' : ' · Saved';
     } catch (err) {
       saving = false;
       batch.forEach(c => { if (!(c.key in pending)) pending[c.key] = c.qty; });
@@ -597,11 +771,15 @@
   }
 
   // ---------- Clicks ----------
-  $('stats').addEventListener('click', e => {
+  $('kpis').addEventListener('click', e => {
     const b = e.target.closest('button[data-filter]');
     if (!b) return;
-    orderFilter = b.dataset.filter === orderFilter ? 'all' : b.dataset.filter;
-    safeRender(true);
+    const f = b.dataset.filter;
+    orderFilter = (view === 'orders' && f === orderFilter) ? 'all' : f;
+    if (view !== 'orders') setView('orders'); else safeRender(true);
+  });
+  $('count').addEventListener('click', e => {
+    if (e.target.closest('#clearFilter')) { orderFilter = 'all'; safeRender(true); }
   });
 
   $('list').addEventListener('click', e => {
@@ -614,7 +792,7 @@
     }
     const v = e.target.closest('button[data-vall]');
     if (v) {
-      e.preventDefault();   // the button sits on the part's tab; don't also open/close the part
+      e.preventDefault();   // the button sits on the part's row; don't also open/close the part
       const pk = v.dataset.vall, wk = pk + '|orders';
       if (openKeys.has(wk)) openKeys.delete(wk); else { openKeys.add(wk); openKeys.add(pk); }
       safeRender(true);
@@ -656,6 +834,7 @@
   const editing = () => document.activeElement && document.activeElement.matches && document.activeElement.matches('#list input[data-k]');
 
   function safeRender(force) {
+    if (!loaded) return;
     if (!force && editing()) { needsRender = true; return; }
     needsRender = false;
     render();
@@ -667,26 +846,41 @@
     }
   }
 
-  $('search').addEventListener('input', () => safeRender(true));
+  let searchTimer;
+  $('search').addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(() => safeRender(true), 120); });
 
-  const pill = (req, left, label) =>
-    '<span class="pill"><b>' + fmt(req) + '</b>' + label + ' · ' +
-    (left ? fmt(left) + ' to fill' : '<span class="done">filled</span>') + '</span>';
-  const det = (key, forceOpen, inner, cls) => '<details' + (cls ? ' class="' + cls + '"' : '') + ' data-key="' + esc(key) + '"' +
-    (openKeys.has(key) || forceOpen ? ' open' : '') + '>' + inner + '</details>';
-  const colourDot = c => '<span class="chip"><i style="background:' + (/white/i.test(c) ? '#fff' : /black/i.test(c) ? '#111' : 'transparent') + '"></i>' + esc(c) + '</span>';
+  const isOpen = (key, force) => (openKeys.has(key) || force ? ' open' : '');
+  const swatch = c => '<span class="swatch"><i style="background:' + (/white/i.test(c) ? '#fff' : /black/i.test(c) ? '#111' : 'transparent') + '"></i>' + esc(c) + '</span>';
 
-  function stepper(key, comp, colour, value, max) {
-    return '<span class="step ' + colour + '">' +
-      '<button type="button" data-k="' + esc(key) + '" data-c="' + esc(comp) + '" data-d="-1" aria-label="Remove one"' + (value <= 0 ? ' disabled' : '') + '>−</button>' +
-      '<input type="number" inputmode="numeric" min="0" step="1" data-k="' + esc(key) + '" data-c="' + esc(comp) + '" value="' + value + '" aria-label="Quantity">' +
-      '<button type="button" data-k="' + esc(key) + '" data-c="' + esc(comp) + '" data-d="1" aria-label="Add one"' + (value >= max ? ' disabled' : '') + '>+</button></span>';
+  function stepper(key, comp, kind, value, max) {
+    return '<span class="step ' + kind + (value > 0 ? ' has' : '') + '">' +
+      '<button type="button" data-k="' + esc(key) + '" data-c="' + esc(comp) + '" data-d="-1" aria-label="Remove one ' + (kind === 'painted' ? 'built' : kind) + '"' + (value <= 0 ? ' disabled' : '') + '>−</button>' +
+      '<input type="number" inputmode="numeric" min="0" step="1" data-k="' + esc(key) + '" data-c="' + esc(comp) + '" value="' + value + '" aria-label="' + (kind === 'painted' ? 'built' : kind) + ' quantity">' +
+      '<button type="button" data-k="' + esc(key) + '" data-c="' + esc(comp) + '" data-d="1" aria-label="Add one ' + (kind === 'painted' ? 'built' : kind) + '"' + (value >= max ? ' disabled' : '') + '>+</button></span>';
   }
 
-  function statusCounts(statuses) {
-    const n = { full: 0, raw: 0, missing: 0, open: 0 };
-    statuses.forEach(s => n[s]++);
-    return ['full', 'raw', 'missing', 'open'].filter(s => n[s]).map(s => '<span class="st ' + s + '"><b>' + n[s] + '</b> ' + ST[s] + '</span>').join('');
+  const covBlock = (p, r, total, label) =>
+    '<div class="cov">' + meter(p, r, total) + '<div class="lbl"><span>' + label + '</span><span><b>' + pct(Math.min(p + r, total), total) + '%</b> covered</span></div></div>';
+
+  // ---------- KPI strip (both pages) ----------
+  function renderKpis() {
+    const all = Object.values(D.orders), n = { full: 0, raw: 0, missing: 0, open: 0 };
+    all.forEach(o => n[o.status]++);
+    const K = D.K;
+    const pressed = f => (view === 'orders' && orderFilter === f);
+    const tile = (f, label, val, sub) => '<button type="button" class="kpi" data-filter="' + f + '" aria-pressed="' + pressed(f) + '" title="Show ' + label + ' orders">' +
+      '<div class="k"><i class="sdot ' + f + '"></i>' + label + '</div><div class="v">' + val + '</div><div class="s">' + sub + '</div></button>';
+    $('kpis').innerHTML = '<div class="kpis">' +
+      '<button type="button" class="kpi" data-filter="all" aria-pressed="' + pressed('all') + '" title="Show all orders">' +
+        '<div class="k">Orders in system</div><div class="v">' + all.length + '</div>' + statusMeter(n, 'margin-top:7px') +
+        '<div class="s" style="margin-top:6px">' + pct(K.covered, K.lines) + '% of order lines covered</div></button>' +
+      tile('full', ST.full, n.full, pct(n.full, all.length) + '% · ready to ship') +
+      tile('raw', ST.raw, n.raw, 'not built yet') +
+      tile('missing', ST.missing, n.missing, 'short on stock') +
+      tile('open', ST.open, n.open, 'stock available') +
+      '<div class="kpi"><div class="k">Sale value covered</div><div class="v money">' + moneyShort(K.sale) + '</div>' +
+        '<div class="s">of ' + moneyShort(K.saleMax) + ' possible</div></div>' +
+      '</div>';
   }
 
   // ---------- Components page ----------
@@ -698,20 +892,20 @@
       const k = c.kits[l.kit] || (c.kits[l.kit] = { part: l.kit, desc: l.kitDesc, colour: l.colour, orders: [] });
       k.orders.push(l);
     });
-    return Object.values(parts).sort((a, b) => byNum(a.part, b.part)).map(p => {
+    const sum = (list, fn) => list.reduce((s, x) => s + fn(x), 0);
+    return Object.values(parts).sort((a, b) => byNum(cleanPn(a.part), cleanPn(b.part))).map(p => {
       p.comps = Object.values(p.comps).sort((a, b) => byNum(a.part, b.part)).map(c => {
         c.kits = Object.values(c.kits).sort((a, b) => byNum(a.part, b.part)).map(k => {
           k.orders.sort((a, b) => byNum(a.order, b.order));
-          k.req = k.orders.reduce((s, o) => s + o.req, 0);
-          k.left = k.orders.reduce((s, o) => s + D.line.get(o).f.left, 0);
+          k.need = sum(k.orders, o => need(o.req));
+          k.p = sum(k.orders, o => D.line.get(o).f.p); k.r = sum(k.orders, o => D.line.get(o).f.r);
+          k.left = sum(k.orders, o => D.line.get(o).f.left);
           return k;
         });
-        c.req = c.kits.reduce((s, k) => s + k.req, 0);
-        c.left = c.kits.reduce((s, k) => s + k.left, 0);
+        ['need', 'p', 'r', 'left'].forEach(f => { c[f] = sum(c.kits, k => k[f]); });
         return c;
       });
-      p.req = p.comps.reduce((s, c) => s + c.req, 0);
-      p.left = p.comps.reduce((s, c) => s + c.left, 0);
+      ['need', 'p', 'r', 'left'].forEach(f => { p[f] = sum(p.comps, c => c[f]); });
       return p;
     });
   }
@@ -724,13 +918,13 @@
       const sale = o.price == null ? null : (f.p + f.r) * o.price;
       tReq += o.req; tP += f.p; tR += f.r; tCost += f.cost; tSale += sale || 0;
       const id = rowId(o.pn, c.part, k.part, o.order), open = openOrders.has(id);
-      return '<tr data-row="' + esc(id) + '"><td><button type="button" class="otog" data-otog="' + esc(id) + '" aria-expanded="' + open + '">' +
-        '<span>' + esc(o.order) + (o.cust ? '<small>' + esc(o.cust) + '</small>' : '') + '</span></button></td>' +
+      return '<tr data-row="' + esc(id) + '"><td><button type="button" class="otog" data-otog="' + esc(id) + '" aria-expanded="' + open + '" title="Show everything in this order">' + CHEV +
+        '<span><b>' + esc(o.order) + '</b>' + (o.cust ? '<small>' + esc(o.cust) + '</small>' : '') + '</span></button></td>' +
         '<td class="num">' + fmt(o.req) + '</td>' +
-        '<td class="c">' + stepper(pk, c.part, 'blue', f.p, maxFor(pk)) + '</td>' +
-        '<td class="c">' + stepper(rk, c.part, 'red', f.r, maxFor(rk)) + '</td>' +
-        '<td class="num cost">' + money(f.cost) + '</td>' +
-        '<td class="num green">' + (sale == null ? '<span class="na" title="No unit_cdn in Sales_Detail for this order and part">—</span>' : money(sale)) + '</td>' +
+        '<td class="c">' + stepper(pk, c.part, 'painted', f.p, maxFor(pk)) + '</td>' +
+        '<td class="c">' + stepper(rk, c.part, 'raw', f.r, maxFor(rk)) + '</td>' +
+        '<td class="num cost">' + (f.cost ? money(f.cost) : '<span class="zero">—</span>') + '</td>' +
+        '<td class="num money">' + (sale == null ? '<span class="na" title="No unit_cdn in Sales_Detail for this order and part">—</span>' : sale ? money(sale) : '<span class="zero">—</span>') + '</td>' +
         '<td>' + chip(s, f.left ? fmt(f.left) + ' short' : '') + '</td></tr>' +
         (open ? '<tr class="detail"><td colspan="7"><div class="dwrap">' + orderView(o.order, o, 'k:' + id) + '</div></td></tr>' : '');
     }).join('');
@@ -740,40 +934,32 @@
     const otherKits = [...new Set(leaves.filter(l => l.comp === c.part && l.kit !== k.part).map(l => l.kit))].sort(byNum);
     const kitComps = new Set(leaves.filter(l => l.kit === k.part).map(l => l.comp)).size;
 
-    const pool = (cls, title, on, used, extra) =>
-      '<div class="pool ' + cls + '"><h4>' + title + '</h4><dl>' +
-      '<dt>On hand</dt><dd>' + fmt(on) + '</dd><dt>Allocated (all orders)</dt><dd>' + fmt(used) + '</dd>' +
-      '<dt>Available</dt><dd>' + fmt(Math.max(0, on - used)) + '</dd></dl>' + extra +
+    const pool = (kind, title, on, used, note) =>
+      '<div class="pool"><h4><i class="sw ' + kind + '"></i>' + title + '</h4>' +
+      '<div class="meter">' + (used > 0 ? '<i class="' + kind + '" style="flex:' + used + '" title="Allocated: ' + fmt(used) + '"></i>' : '') +
+        (on - used > 0 ? '<i style="flex:' + (on - used) + '" title="Available: ' + fmt(on - used) + '"></i>' : '') + '</div>' +
+      '<dl><div><dt>On hand</dt><dd>' + fmt(on) + '</dd></div><div><dt>Allocated</dt><dd>' + fmt(used) + '</dd></div><div><dt>Available</dt><dd>' + fmt(Math.max(0, on - used)) + '</dd></div></dl>' +
+      (note ? '<div class="note">' + note + '</div>' : '') +
       (used > on ? '<div class="warn">Over-allocated by ' + fmt(used - on) + '. On hand dropped in the sheet. Remove some to fix.</div>' : '') + '</div>';
 
-    return '<div class="tablewrap"><table><thead><tr><th>Order number</th><th class="num">Qty required</th>' +
-      '<th class="c blue">Painted</th><th class="c red">Raw</th><th class="num cost">Avg Cost</th><th class="num green">Sale Value</th><th>Status</th></tr></thead>' +
+    return '<div class="tablewrap"><table class="ktable"><thead><tr><th>Order</th><th class="num">Qty req</th>' +
+      '<th class="c painted">Built</th><th class="c raw">Raw</th><th class="num cost">Avg Cost</th><th class="num money">Sale Value</th><th>Status</th></tr></thead>' +
       '<tbody>' + body + '</tbody><tfoot><tr><td>Total</td><td class="num">' + fmt(tReq) + '</td>' +
-      '<td class="c blue">' + fmt(tP) + '</td><td class="c red">' + fmt(tR) + '</td><td class="num cost">' + money(tCost) + '</td><td class="num green">' + money(tSale) + '</td>' +
-      '<td>' + (k.left ? fmt(k.left) + ' still needed' : '') + '</td></tr></tfoot></table></div>' +
+      '<td class="c pc">' + fmt(tP) + '</td><td class="c rc">' + fmt(tR) + '</td><td class="num cost">' + money(tCost) + '</td><td class="num money">' + money(tSale) + '</td>' +
+      '<td style="color:var(--muted);font-weight:500">' + (k.left ? fmt(k.left) + ' still needed' : 'All covered') + '</td></tr></tfoot></table></div>' +
       '<div class="pools">' +
-      pool('blue', 'Painted ' + esc(k.part) + (k.colour ? ' · ' + esc(k.colour) : ''), kitOn, kitUsed,
-           kitComps > 1 ? '<div class="note">This kit has ' + kitComps + ' components. One painted kit covers the order under each of them.</div>' : '') +
-      pool('red', 'Raw ' + esc(c.part), compOn, compUsed,
-           otherKits.length ? '<div class="note">Shared with ' + otherKits.map(esc).join(', ') + '</div>' : '') +
+      pool('painted', 'Built ' + esc(k.part) + (k.colour ? ' · ' + esc(k.colour) : ''), kitOn, kitUsed,
+           kitComps > 1 ? 'This kit has ' + kitComps + ' components. One built kit covers the order under each of them.' : '') +
+      pool('raw', 'Raw ' + esc(c.part), compOn, compUsed, otherKits.length ? 'Shared with ' + otherKits.map(esc).join(', ') : '') +
       '</div>';
   }
 
-  // "View all orders" under a part: every order that includes this part, each opening to the full order.
   function partOrders(pn, pk, orders) {
     const wk = pk + '|orders';
     if (!openKeys.has(wk)) return '';
-    const items = orders.map(o => {
-      const O = D.orders[o], ok = wk + '|o:' + o, open = openKeys.has(ok);
-      return '<details class="ord lazy" data-key="' + esc(ok) + '"' + (open ? ' open' : '') + '>' +
-        '<summary><span class="name"><div class="part">' + esc(o) + '</div><div class="desc">' +
-        [O.cust, O.date].filter(Boolean).map(esc).join(' · ') + '</div></span>' +
-        '<span class="oright">' + chip(partStatus(pn, o), '', 'Status of ' + pn + ' in this order') +
-        '<span>' + O.done + ' of ' + plural(O.lines.length, 'line') + ' covered</span></span></summary>' +
-        '<div class="inner">' + (open ? '<div class="dwrap">' + orderView(o, null, ok) + '</div>' : '') + '</div></details>';
-    }).join('');
-    return '<div class="allorders" data-panel="' + esc(wk) + '"><div class="allorders-head"><b>All orders for ' + esc(pn) + '</b>' +
-      '<span class="desc">' + plural(orders.length, 'order') + '</span></div>' + items + '</div>';
+    const items = orders.map(o => orderCard(D.orders[o], wk + '|o:' + o, partStatus(pn, o), 'Status of ' + cleanPn(pn) + ' in this order')).join('');
+    return '<div class="allorders" data-panel="' + esc(wk) + '"><div class="allorders-head"><b>All orders for <span class="mono">' + esc(cleanPn(pn)) + '</span></b>' +
+      '<span style="color:var(--muted)">' + plural(orders.length, 'order') + ' · status shown is for this part</span></div>' + items + '</div>';
   }
 
   function renderComponents(s) {
@@ -790,37 +976,44 @@
         return comps.length ? Object.assign({}, p, { comps }) : null;
       }).filter(Boolean);
     }
-    $('stats').innerHTML = '';
-    $('count').textContent = plural(tree.length, 'part');
-    if (!tree.length) return '<p class="empty">' + (leaves.length ? 'No matches.' : 'No open requirements.') + '</p>';
+    $('count').innerHTML = '<span>' + plural(tree.length, 'part') + (s ? ' matching “' + esc(s) + '”' : '') + '</span>';
+    if (!tree.length) return '<div class="empty">' + (leaves.length ? 'No matches.' : 'No open requirements.') + '</div>';
 
     return tree.map(p => {
       const pk = 'p:' + p.part;
       const orders = [...new Set(leaves.filter(l => l.pn === p.part).map(l => l.order))].sort(byNum);
-      const counts = statusCounts(orders.map(o => partStatus(p.part, o)));
+      const n = { full: 0, raw: 0, missing: 0, open: 0 };
+      orders.forEach(o => n[partStatus(p.part, o)]++);
       const vOn = openKeys.has(pk + '|orders');
       const comps = p.comps.map(c => {
         const ck = pk + '|c:' + c.part;
         const kits = c.kits.map(k => {
           const kk = ck + '|k:' + k.part;
-          return det(kk, s,
-            '<summary><span class="name"><div class="lvl">Kit</div><div class="part">' + esc(k.part) +
-            (k.colour ? colourDot(k.colour) : '') + '</div>' + (k.desc ? '<div class="desc">' + esc(k.desc) + '</div>' : '') + '</span>' +
-            pill(k.req, k.left, plural(k.orders.length, 'order')) + '</summary>' +
-            '<div class="inner">' + ordersBlock(c, k) + '</div>');
+          const kitOn = (inv.kits[k.part] || {}).onhand || 0, compOn = (inv.comps[c.part] || {}).onhand || 0;
+          return '<details class="kit" data-key="' + esc(kk) + '"' + isOpen(kk, s) + '>' +
+            '<summary>' + CHEV + '<div style="min-width:0"><div class="t"><span class="lvl">Kit</span>' + esc(k.part) + (k.colour ? swatch(k.colour) : '') + '</div>' +
+            (k.desc ? '<div class="d">' + esc(k.desc) + '</div>' : '') + '</div>' +
+            '<div class="stock" title="Still free to assign, out of what is on hand"><span class="p">' + fmt(D.kitAvail(k.part)) + ' of ' + fmt(kitOn) + ' built left</span><span class="r">' + fmt(D.compAvail(c.part)) + ' of ' + fmt(compOn) + ' raw left</span></div>' +
+            covBlock(k.p, k.r, k.need, plural(k.orders.length, 'order')) + '</summary>' +
+            '<div class="kit-body">' + ordersBlock(c, k) + '</div></details>';
         }).join('');
-        return det(ck, s,
-          '<summary><span class="name"><div class="lvl">Component</div><div class="part">' + esc(c.part) + '</div>' +
-          (c.desc ? '<div class="desc">' + esc(c.desc) + '</div>' : '') + '</span>' +
-          pill(c.req, c.left, plural(c.kits.length, 'kit')) + '</summary><div class="inner">' + kits + '</div>');
+        return '<details class="comp" data-key="' + esc(ck) + '"' + isOpen(ck, s) + '>' +
+          '<summary>' + CHEV + '<div style="min-width:0"><div class="t"><span class="lvl">Component</span>' + esc(c.part) + '</div>' +
+          (c.desc ? '<div class="d">' + esc(c.desc) + '</div>' : '') + '</div>' +
+          covBlock(c.p, c.r, c.need, plural(c.kits.length, 'kit')) + '</summary>' +
+          '<div class="comp-body">' + kits + '</div></details>';
       }).join('');
-      return det(pk, s,
-        '<summary><span class="name"><div class="lvl">Part</div><div class="part">' + esc(p.part) + '</div>' +
-        (p.desc ? '<div class="desc">' + esc(p.desc) + '</div>' : '') +
-        (counts ? '<div class="chips" title="Orders for this part, by status">' + counts + '</div>' : '') +
-        '<button type="button" class="vall" data-vall="' + esc(pk) + '" aria-pressed="' + vOn + '">' +
-        (vOn ? 'Hide orders' : 'View all orders') + ' <span>(' + orders.length + ')</span></button></span>' +
-        pill(p.req, p.left, plural(p.comps.length, 'component')) + '</summary><div class="inner">' + partOrders(p.part, pk, orders) + comps + '</div>');
+      const counts = ORDER_OF.filter(k => n[k]).map(k => '<span><i class="sdot ' + k + '"></i><b>' + n[k] + '</b> ' + ST[k] + '</span>').join('');
+      return '<details class="part-card" data-key="' + esc(pk) + '"' + isOpen(pk, s) + '>' +
+        '<summary>' + CHEV +
+        '<div class="pname"><div class="t">' + esc(cleanPn(p.part)) + (isFitKit(p.part) ? '<span class="tag">Fit kit</span>' : '') + '</div>' +
+          (p.desc ? '<div class="d" title="' + esc(p.desc) + '">' + esc(p.desc) + '</div>' : '') + '</div>' +
+        '<div class="pstat" title="This part across its orders, by status">' + statusMeter(n) + '<div class="counts">' + counts + '</div></div>' +
+        '<div class="pcov">' + covBlock(p.p, p.r, p.need, plural(p.comps.length, 'component')) + '</div>' +
+        '<div class="pact"><button type="button" class="vall" data-vall="' + esc(pk) + '" aria-pressed="' + vOn + '">' +
+          (vOn ? 'Hide orders' : 'View all orders') + ' <span class="n">' + orders.length + '</span></button></div>' +
+        '</summary><div class="part-body">' + partOrders(p.part, pk, orders) +
+        '<div class="section-label">Components</div>' + comps + '</div></details>';
     }).join('');
   }
 
@@ -831,62 +1024,46 @@
     if (!O) return '';
     const parts = {};
     O.lines.forEach(l => (parts[l.pn] || (parts[l.pn] = [])).push(l));
-    let costAll = 0, costTotal = 0, saleAll = 0, salePriced = false;
 
-    const body = Object.keys(parts).sort(byNum).map(pn => {
+    const body = Object.keys(parts).sort((a, b) => byNum(cleanPn(a), cleanPn(b))).map(pn => {
       const group = parts[pn].sort((a, b) => byNum(a.comp, b.comp) || byNum(a.kit, b.kit));
-      const first = group[0];
+      const first = group[0], info = O.partInfo[pn] || {};
       const paintedKeys = {};
       let raw = 0, cost = 0, reqSum = 0;
-      group.forEach(l => {
-        const f = D.line.get(l).f;
-        paintedKeys[pKey(l.order, l.kit)] = f.p;
-        raw += f.r; cost += f.cost; reqSum += l.req; costTotal += l.cost || 0;
-      });
+      group.forEach(l => { const f = D.line.get(l).f; paintedKeys[pKey(l.order, l.kit)] = f.p; raw += f.r; cost += f.cost; reqSum += l.req; });
       const painted = Object.values(paintedKeys).reduce((a, b) => a + b, 0);
-      // Complete units of this part = the smallest number any one component can support.
-      const ordered = first.oqty;
-      let units = null;
-      if (ordered) {
-        units = Math.min(ordered, ...group.map(l => {
-          const f = D.line.get(l).f, per = l.req / ordered;
-          return per > 0 ? Math.floor((f.p + f.r) / per + 1e-9) : ordered;
-        }));
-      }
-      const sale = first.price != null && units != null ? first.price * units : null;
-      if (sale != null) { saleAll += sale; salePriced = true; }
-      costAll += cost;
-
-      const head = '<tr class="grp"><td colspan="3"><b>' + esc(pn) + '</b>' +
-        (first.pnDesc ? '<div class="desc">' + esc(first.pnDesc) + '</div>' : '') + '</td>' +
-        '<td class="num">' + (ordered ? fmt(ordered) + '<div class="desc">units</div>' : fmt(reqSum)) + '</td>' +
-        '<td class="num blue">' + fmt(painted) + '</td><td class="num red">' + fmt(raw) + '</td>' +
+      const head = '<tr class="grp"><td colspan="3"><span class="pn">' + esc(cleanPn(pn)) + '</span>' + (isFitKit(pn) ? '<span class="tag">Fit kit</span>' : '') +
+        (first.pnDesc ? '<div class="d">' + esc(first.pnDesc) + '</div>' : '') + '</td>' +
+        '<td class="num"><b>' + (info.ordered ? fmt(info.ordered) : fmt(reqSum)) + '</b>' + (info.ordered ? '<span class="u">units</span>' : '') + '</td>' +
+        '<td class="num pc">' + fmt(painted) + '</td><td class="num rc">' + fmt(raw) + '</td>' +
         '<td class="num cost">' + money(cost) + '</td>' +
-        '<td class="num green">' + (sale == null ? '<span class="na" title="No sale price or unit count for this part">—</span>'
-          : money(sale) + '<div class="desc">' + fmt(units) + ' of ' + fmt(ordered) + ' units</div>') + '</td>' +
+        '<td class="num money">' + (info.sale == null ? '<span class="na" title="No sale price or unit count for this part">—</span>'
+          : '<b>' + money(info.sale) + '</b><span class="u">' + fmt(info.units) + ' of ' + fmt(info.ordered) + ' units</span>') + '</td>' +
         '<td>' + chip(partStatus(pn, order)) + '</td></tr>';
-
       const rows = group.map(l => {
         const { f, s } = D.line.get(l), me = markLeaf && l === markLeaf;
-        const go = me ? '<b>' + esc(l.comp) + '</b> <span class="desc">(this line)</span>'
-                 : '<button type="button" class="go" data-go="' + esc(JSON.stringify([l.pn, l.comp, l.kit, l.order])) + '">' + esc(l.comp) + '</button>';
+        const go = '<button type="button" class="go" data-go="' + esc(JSON.stringify([l.pn, l.comp, l.kit, l.order])) + '" title="Open this line to change it">' + esc(l.comp) + '</button>' +
+          (me ? '<span class="me-tag">this line</span>' : '');
         return '<tr class="sub' + (me ? ' me' : '') + '"><td></td><td title="' + esc(l.compDesc || '') + '">' + go + '</td>' +
-          '<td>' + esc(l.kit) + (l.colour ? ' <span class="desc">· ' + esc(l.colour) + '</span>' : '') + '</td>' +
-          '<td class="num">' + fmt(l.req) + '</td><td class="num blue">' + fmt(f.p) + '</td><td class="num red">' + fmt(f.r) + '</td>' +
-          '<td class="num cost">' + money(f.cost) + '</td><td></td><td>' + chip(s, f.left ? fmt(f.left) + ' short' : '') + '</td></tr>';
+          '<td class="kitc">' + esc(l.kit) + (l.colour ? ' <span style="color:var(--muted);font-family:var(--font)">· ' + esc(l.colour) + '</span>' : '') + '</td>' +
+          '<td class="num">' + fmt(l.req) + '</td><td class="num pc">' + (f.p || '<span class="zero">0</span>') + '</td><td class="num rc">' + (f.r || '<span class="zero">0</span>') + '</td>' +
+          '<td class="num cost">' + (f.cost ? money(f.cost) : '<span class="zero">—</span>') + '</td><td></td><td>' + chip(s, f.left ? fmt(f.left) + ' short' : '') + '</td></tr>';
       }).join('');
       return head + rows;
     }).join('');
 
-    return '<div class="ohead"><span>Order <b>' + esc(order) + '</b></span>' +
-      (O.cust ? '<span>Customer <b>' + esc(O.cust) + '</b></span>' : '') +
-      (O.date ? '<span>Ordered <b>' + esc(O.date) + '</b></span>' : '') +
-      chip(O.status) +
-      '<span><b>' + O.done + ' of ' + O.lines.length + '</b> lines covered</span>' +
-      '<span>Avg cost <b>' + money(costAll) + '</b> of <b>' + money(costTotal) + '</b></span>' +
-      (salePriced ? '<span>Sale value <b class="green">' + money(saleAll) + '</b></span>' : '') + '</div>' +
+    const fact = (k, v, cls, extra, wide) => '<div class="fact' + (wide ? ' wide' : '') + '"><div class="k">' + k + '</div><div class="v' + (cls ? ' ' + cls : '') + '">' + v + '</div>' + (extra || '') + '</div>';
+    return '<div class="ofacts">' +
+      fact('Order', '<span class="mono">' + esc(order) + '</span>') +
+      fact('Customer', '<span title="' + esc(O.cust) + '">' + esc(O.cust || '—') + '</span>', '', '', 'wide') +
+      fact('Ordered', esc(O.date || '—')) +
+      fact('Status', chip(O.status)) +
+      fact('Lines covered', O.done + ' / ' + O.lines.length, '', meter(O.p, O.r, O.need)) +
+      fact('Avg cost', money(O.cost) + ' <span style="color:var(--muted);font-weight:400;font-size:12px">/ ' + moneyShort(O.costTotal) + '</span>') +
+      (O.priced ? fact('Sale value', money(O.sale) + ' <span style="color:var(--muted);font-weight:400;font-size:12px">/ ' + moneyShort(O.saleMax) + '</span>', 'money') : '') +
+      '</div>' +
       '<div class="tablewrap"><table class="otable"><thead><tr><th>Part</th><th>Component</th><th>Kit</th>' +
-      '<th class="num">Req</th><th class="num blue">Painted</th><th class="num red">Raw</th><th class="num cost">Avg Cost</th><th class="num green">Sale Value</th><th>Status</th></tr></thead>' +
+      '<th class="num">Req</th><th class="num painted">Built</th><th class="num raw">Raw</th><th class="num cost">Avg Cost</th><th class="num money">Sale Value</th><th>Status</th></tr></thead>' +
       '<tbody>' + body + '</tbody></table></div>' + extrasBlock(O, ctx);
   }
 
@@ -898,53 +1075,49 @@
     const key = 'x|' + ctx;
     const rows = list.map(x => {
       const c = D.extra.get(x), on = (inv.items[x.item] || {}).onhand || 0;
-      return '<tr><td><b>' + esc(x.item) + '</b></td><td class="desc">' + esc(x.desc) + '</td><td>' + esc(x.pn) + '</td>' +
+      return '<tr><td class="item">' + esc(x.item) + '</td><td style="color:var(--ink-2)">' + esc(x.desc) + '</td><td class="mono" style="font-size:12px;color:var(--muted)">' + esc(cleanPn(x.pn)) + '</td>' +
         '<td class="num">' + fmt(x.req) + '</td><td class="num">' + fmt(on) + '</td>' +
         '<td>' + (c.short ? chip('missing', '', 'Not enough on hand after earlier orders', fmt(c.short) + ' short') : chip('full', '', 'In stock and set aside for this order', 'In stock')) + '</td></tr>';
     }).join('');
-    return det(key, false,
-      '<summary><span class="name"><b>Other items</b> <span class="desc">· screws, boxes, inserts and other kit-level items (' + list.length + ')</span></span>' +
+    return '<details class="extras" data-key="' + esc(key) + '"' + isOpen(key) + '>' +
+      '<summary>' + CHEV + '<span class="grow"><b>Other items</b> <span style="color:var(--muted)">· screws, boxes, inserts and packaging · ' + list.length + '</span></span>' +
       (short ? chip('missing', '', '', plural(short, 'item') + ' short') : chip('full', '', '', 'All in stock')) + '</summary>' +
-      '<div class="inner"><div class="tablewrap"><table class="xtable"><thead><tr><th>Item</th><th>Description</th><th>Part</th>' +
+      '<div class="xin"><div class="tablewrap"><table class="xtable"><thead><tr><th>Item</th><th>Description</th><th>Part</th>' +
       '<th class="num">Req</th><th class="num">On hand</th><th>Status</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
-      '<p class="desc" style="margin:8px 2px 0">Stock is set aside automatically, lowest order number first.</p></div>', 'extras');
+      '<p style="margin:8px 2px 0;color:var(--muted);font-size:12px">Stock is set aside automatically, lowest order number first.</p></div></details>';
+  }
+
+  // Order card, used on the All Orders page and inside a part's order list.
+  function orderCard(o, key, status, statusTitle) {
+    const open = openKeys.has(key);
+    const partsList = [...o.parts].sort((a, b) => byNum(cleanPn(a), cleanPn(b))).map(cleanPn);
+    return '<details class="ocard lazy" data-key="' + esc(key) + '"' + (open ? ' open' : '') + '>' +
+      '<summary>' + CHEV +
+      '<div><div class="onum">' + esc(o.order) + '</div><div class="odate">' + esc(o.date || '') + '</div></div>' +
+      '<div class="ocustw" style="min-width:0"><div class="ocust" title="' + esc(o.cust) + '">' + esc(o.cust || '—') + '</div>' +
+        '<div class="oparts" title="' + esc(partsList.join(', ')) + '">' + partsList.map(esc).join(' · ') + '</div></div>' +
+      '<div class="ocovw"><div class="cov">' + meter(o.p, o.r, o.need) + '<div class="lbl"><span>' + o.done + ' / ' + o.lines.length + ' lines</span><span><b>' + pct(Math.min(o.p + o.r, o.need), o.need) + '%</b></span></div></div></div>' +
+      '<div class="ostat">' + chip(status || o.status, '', statusTitle) + '</div>' +
+      '<div class="oval">' + (o.priced ? money(o.sale) + '<small>of ' + moneyShort(o.saleMax) + '</small>' : '<span class="na">—</span>') + '</div>' +
+      '</summary><div class="ocard-body">' + (open ? '<div class="dwrap">' + orderView(o.order, null, key) + '</div>' : '') + '</div></details>';
   }
 
   // ---------- All Orders page ----------
   function renderOrders(s) {
     const m = v => String(v || '').toLowerCase().includes(s);
-    const all = Object.values(D.orders).sort((a, b) => byNum(a.order, b.order));
-    const n = { full: 0, raw: 0, missing: 0, open: 0 };
-    all.forEach(o => n[o.status]++);
-    const stat = (f, label, val) => '<button type="button" class="stat" data-filter="' + f + '" aria-pressed="' + (orderFilter === f) + '">' +
-      (f === 'all' ? '<span class="desc">' + label + '</span>' : '<span class="st ' + f + '">' + label + '</span>') + '<b>' + val + '</b></button>';
-    $('stats').innerHTML = '<div class="stats">' + stat('all', 'All orders', all.length) + stat('full', ST.full, n.full) +
-      stat('raw', ST.raw, n.raw) + stat('missing', ST.missing, n.missing) + stat('open', ST.open, n.open) + '</div>';
-
-    const list = all.filter(o => (orderFilter === 'all' || o.status === orderFilter) &&
+    const list = Object.values(D.orders).filter(o => (orderFilter === 'all' || o.status === orderFilter) &&
       (!s || m(o.order) || m(o.cust) || [...o.parts].some(m) || o.lines.some(l => m(l.comp) || m(l.kit)) || o.extras.some(x => m(x.item) || m(x.desc))));
-    $('count').textContent = plural(list.length, 'order') + (orderFilter !== 'all' ? ' · ' + ST[orderFilter] : '') + ' · lowest order number first';
-    if (!list.length) return '<p class="empty">No orders match.</p>';
-
-    return list.map(o => {
-      const key = 'O:' + o.order, open = openKeys.has(key);
-      let sale = 0, priced = false;
-      const byPart = {};
-      o.lines.forEach(l => (byPart[l.pn] || (byPart[l.pn] = [])).push(l));
-      Object.values(byPart).forEach(g => {
-        const f = g[0];
-        if (f.price == null || !f.oqty) return;
-        const units = Math.min(f.oqty, ...g.map(l => { const x = D.line.get(l).f, per = l.req / f.oqty; return per > 0 ? Math.floor((x.p + x.r) / per + 1e-9) : f.oqty; }));
-        sale += f.price * units; priced = true;
-      });
-      return '<details class="ocard lazy" data-key="' + esc(key) + '"' + (open ? ' open' : '') + '>' +
-        '<summary><span class="name" style="flex:0 1 260px"><div class="onum">' + esc(o.order) + '</div><div class="desc">' +
-        [o.cust, o.date].filter(Boolean).map(esc).join(' · ') + '</div></span>' +
-        '<span class="oparts" title="' + esc([...o.parts].sort(byNum).join(', ')) + '">' + [...o.parts].sort(byNum).map(esc).join(' · ') + '</span>' +
-        '<span class="oright">' + chip(o.status) + '<span>' + o.done + ' of ' + plural(o.lines.length, 'line') + ' covered</span>' +
-        (priced ? '<span class="money">' + money(sale) + '</span>' : '') + '</span></summary>' +
-        '<div class="inner">' + (open ? '<div class="dwrap">' + orderView(o.order, null, key) + '</div>' : '') + '</div></details>';
-    }).join('');
+    const sorters = {
+      order: (a, b) => byNum(a.order, b.order),
+      status: (a, b) => RANK[b.status] - RANK[a.status] || byNum(a.order, b.order),
+      value: (a, b) => b.saleMax - a.saleMax || byNum(a.order, b.order),
+      date: (a, b) => String(a.date).localeCompare(String(b.date)) || byNum(a.order, b.order)
+    };
+    list.sort(sorters[orderSort] || sorters.order);
+    $('count').innerHTML = '<span>' + plural(list.length, 'order') + (orderFilter !== 'all' ? ' · ' + chip(orderFilter) : '') + (s ? ' matching “' + esc(s) + '”' : '') + '</span>' +
+      (orderFilter !== 'all' ? '<button type="button" class="b" id="clearFilter" style="height:28px;font-size:12px">Clear filter</button>' : '');
+    if (!list.length) return '<div class="empty">No orders match.</div>';
+    return list.map(o => orderCard(o, 'O:' + o.order)).join('');
   }
 
   // Open part → component → kit for a line and scroll to its order row.
@@ -962,7 +1135,8 @@
 
   function render() {
     D = derive();
-    $('orderCount').textContent = ' ' + Object.keys(D.orders).length;
+    $('orderCount').textContent = Object.keys(D.orders).length;
+    renderKpis();
     const s = $('search').value.trim().toLowerCase();
     $('list').innerHTML = view === 'orders' ? renderOrders(s) : renderComponents(s);
   }

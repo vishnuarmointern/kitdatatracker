@@ -94,6 +94,8 @@
          display: inline-flex; align-items: center; gap: 7px; transition: color .15s, background .15s; }
   .tab:hover { color: var(--ink); }
   .tab[aria-selected="true"] { background: var(--card); color: var(--ink); box-shadow: 0 1px 3px rgba(15,23,42,.12); }
+  .tab .badge.urgent { background: var(--s-miss); color: #fff; }
+  .tab .badge.urgent.zero { background: var(--line); color: var(--ink-2); }
   .tab .badge { font-size: 11px; font-weight: 600; background: var(--line); color: var(--ink-2); border-radius: 99px; padding: 0 7px; line-height: 18px; }
   .actions { display: flex; gap: 8px; justify-content: flex-end; }
   .b { background: var(--card); border: 1px solid var(--line); color: var(--ink); border-radius: 9px; height: 34px;
@@ -159,7 +161,7 @@
   .st.full { color: var(--s-full-ink); background: var(--s-full-soft); } .st.full::before { background: var(--s-full); }
   .st.raw { color: var(--s-raw-ink); background: var(--s-raw-soft); } .st.raw::before { background: var(--s-raw); }
   .st.missing { color: var(--s-miss-ink); background: var(--s-miss-soft); } .st.missing::before { background: var(--s-miss); }
-  .st.open { color: var(--s-open-ink); background: var(--s-open-soft); } .st.open::before { background: var(--s-open); }
+  .st.open, .st.na { color: var(--s-open-ink); background: var(--s-open-soft); } .st.open::before, .st.na::before { background: var(--s-open); }
 
   /* ============ Meters ============ */
   .meter { display: flex; gap: 2px; height: 6px; border-radius: 99px; overflow: hidden; background: var(--track); min-width: 60px; }
@@ -208,6 +210,8 @@
   .kit { border: 1px solid var(--line-2); border-radius: 10px; background: var(--row); margin-top: 8px; }
   .kit > summary { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto minmax(130px, 200px); gap: 14px; align-items: center; padding: 10px 12px; border-radius: 10px; }
   .kit-body { padding: 0 12px 12px; }
+  .kit.flat > .krow { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto minmax(130px, 200px); gap: 14px; align-items: center; padding: 10px 12px; }
+  .chev.blank { visibility: hidden; }
   .swatch { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink-2); border: 1px solid var(--line);
             background: var(--card); border-radius: 99px; padding: 1px 9px 1px 4px; font-weight: 500; margin-left: 8px; vertical-align: 1px; font-family: var(--font); }
   .swatch i { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0,0,0,.18); }
@@ -313,9 +317,25 @@
   details.extras > summary .grow { flex: 1; min-width: 0; }
   details.extras .xin { padding: 0 10px 10px; }
   .xtable { min-width: 640px; }
+  .utable { min-width: 860px; }
+  .utable td { vertical-align: top; padding-top: 11px; padding-bottom: 11px; }
+  .utable .upart { font-family: var(--mono); font-weight: 600; font-size: 13px; }
+  .utable .d { color: var(--muted); font-size: 12px; white-space: normal; max-width: 280px; }
+  .utype { font-size: 11.5px; color: var(--ink-2); background: var(--track); border-radius: 6px; padding: 2px 7px; font-weight: 500; }
+  .ushort { color: var(--s-miss-ink); font-size: 15px; }
+  .utable .why { color: var(--muted); font-size: 12.5px; white-space: normal; max-width: 200px; }
+  .utable .used { color: var(--muted); font-family: var(--mono); font-size: 12px; white-space: normal; max-width: 220px; }
+  .ochips { display: flex; flex-wrap: wrap; gap: 4px; max-width: 260px; }
+  .ochip { font-family: var(--mono); font-size: 12px; font-weight: 600; border: 1px solid var(--line); background: var(--card); color: var(--ink);
+           border-radius: 6px; padding: 1px 7px; cursor: pointer; }
+  .ochip:hover { border-color: var(--painted); color: var(--painted-ink); }
+  .ochips .more { font-size: 12px; color: var(--muted); align-self: center; }
+  details.alsoshort { margin-top: 16px; }
+  .ostat .st.na + .eta { display: none; }
   .xtable th, .xtable td { padding: 7px 10px; font-size: 13px; }
+  .money { color: var(--money); }
   .xtable td.item { font-family: var(--mono); font-weight: 600; font-size: 12.5px; }
-  tr.flash > td { animation: flash 2.4s ease-out; }
+  tr.flash > td, .krow.flash { animation: flash 2.4s ease-out; }
   @keyframes flash { 0%, 45% { background: var(--s-raw-soft); } 100% { background: transparent; } }
 
   /* ============ Order cards ============ */
@@ -362,7 +382,7 @@
     .part-body { padding: 0 12px 14px; }
     .comp > summary { grid-template-columns: 22px minmax(0, 1fr); } .comp > summary .cov { grid-column: 2; }
     .comp-body { padding: 2px 10px 12px; }
-    .kit > summary { grid-template-columns: 22px minmax(0, 1fr); } .kit > summary .stock, .kit > summary .cov { grid-column: 2; justify-content: flex-start; }
+    .kit > summary, .kit.flat > .krow { grid-template-columns: 22px minmax(0, 1fr); } .kit > summary .stock, .kit > summary .cov, .kit.flat > .krow .stock, .kit.flat > .krow .cov { grid-column: 2; justify-content: flex-start; }
     .ocard > summary { grid-template-columns: 22px minmax(0, 1fr) auto; gap: 6px 12px; }
     .ocard > summary .ocustw { grid-column: 2 / -1; } .ocard > summary .ostat { grid-column: 2; } .ocard > summary .oval { grid-row: 1; grid-column: 3; }
     .ocard-body { padding: 0 12px 14px; }
@@ -407,6 +427,9 @@
         <button class="tab" role="tab" id="tabOrders" data-view="orders" aria-selected="false">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5h11M9 12h11M9 19h11"/><circle cx="4.5" cy="5" r="1.2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="4.5" cy="19" r="1.2"/></svg>
           All Orders <span class="badge" id="orderCount">–</span></button>
+        <button class="tab" role="tab" id="tabUrgent" data-view="urgent" aria-selected="false">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17.5v.5"/></svg>
+          Urgent Parts <span class="badge urgent" id="urgentCount">–</span></button>
       </nav>
       <div class="actions">
         <button class="b primary lbl" id="autofillBtn" type="button" title="Autofill all orders">
@@ -473,10 +496,10 @@
     del: k => { try { sessionStorage.removeItem(k); } catch (e) {} }
   };
   let token = store.get('kt_token');
-  let leaves = [], extras = [], pos = [], inv = { kits: {}, comps: {}, items: {} }, alloc = {};
+  let leaves = [], extras = [], pos = [], sales = [], inv = { kits: {}, comps: {}, items: {} }, alloc = {};
   let pending = {};
   let saving = false, saveTimer = null, refreshTimer = null, needsRender = false, loaded = false;
-  let view = (location.hash === '#orders') ? 'orders' : 'components';
+  let view = location.hash === '#orders' ? 'orders' : location.hash === '#urgent' ? 'urgent' : 'components';
   let orderFilter = 'all', orderSort = store.get('kt_sort') || 'order';
   const openKeys = new Set();
   const openOrders = new Set();
@@ -511,6 +534,7 @@
     return (f.late ? 'Overdue · was due ' : 'Expected ') + niceDate(f.date);
   }
   function etaTag(f, compact) {
+    if (f && f.kind === 'na') return '';
     if (!f || f.kind === 'now') return compact ? '' : '<span class="eta now">' + CAL + 'Ready now</span>';
     const cls = f.kind === 'none' ? 'none' : f.late ? 'late' : f.kind === 'stock' ? 'stock' : 'date';
     const title = f.kind === 'date' && f.by && f.by.length ? ' title="' + esc('From ' + f.by.join(', ')) + '"' : '';
@@ -530,8 +554,8 @@
 
   // ---------- Statuses ----------
   // full = all built · raw = covered but some raw (can't ship yet) · open = stock exists, not assigned · missing = not enough stock
-  const ST = { full: 'Fulfilled', raw: 'Partial Raw', open: 'Unassigned', missing: 'Parts Missing' };
-  const RANK = { full: 0, raw: 1, open: 2, missing: 3 };
+  const ST = { full: 'Fulfilled', raw: 'Partial Raw', open: 'Unassigned', missing: 'Parts Missing', na: 'No tracked parts' };
+  const RANK = { na: -1, full: 0, raw: 1, open: 2, missing: 3 };
   const ORDER_OF = ['full', 'raw', 'missing', 'open'];
   const worst = list => list.reduce((w, s) => (RANK[s] > RANK[w] ? s : w), 'full');
   const chip = (s, extra, title, label) => '<span class="st ' + s + '"' + (title ? ' title="' + esc(title) + '"' : '') + '>' + (label || ST[s]) + (extra ? ' · ' + extra : '') + '</span>';
@@ -591,6 +615,13 @@
     Object.keys(inv.kits).forEach(k => { freeNow['K|' + k] = kitAvail(k); });
     Object.keys(inv.comps).forEach(c => { freeNow['R|' + c] = compAvail(c); });
     Object.keys(left).forEach(i => { freeNow['I|' + i] = Math.max(0, left[i]); });
+    const freeAtStart = Object.assign({}, freeNow);
+    // Shortfalls nothing can cover (no free stock, no PO quantity left), per part to order.
+    const unmet = {};
+    const addUnmet = (key, type, part, desc, qty, src) => {
+      const u = unmet[key] || (unmet[key] = { key, type, part, desc, short: 0, orders: new Set(), usedIn: new Set(), lines: [] });
+      u.short += qty; u.orders.add(src.order); u.usedIn.add(src.usedIn); u.lines.push(src);
+    };
     // Take up to qty from these pools, earliest first. Returns how much was found, the latest date used and which POs.
     function draw(keys, qty) {
       let got = 0, date = '', usedNow = false; const by = [];
@@ -626,6 +657,7 @@
         if (rem <= 0) { fc.set(l, { kind: 'stock' }); return; }
         const d = draw(['R|' + l.comp, 'K|' + l.kit], rem);
         fc.set(l, mkF(d.got >= rem, d.date, d.usedNow || b > 0, d.by));
+        if (d.got < rem) addUnmet('R|' + l.comp, 'Component', l.comp, l.compDesc, rem - d.got, { order: l.order, usedIn: l.kit, line: l });
       });
     });
     const xfc = new Map();
@@ -634,6 +666,7 @@
       if (!sh) { xfc.set(x, { kind: 'now' }); return; }
       const d = draw(['I|' + x.item], sh);
       xfc.set(x, mkF(d.got >= sh, d.date, d.usedNow, d.by));
+      if (d.got < sh) addUnmet('I|' + x.item, 'Other item', x.item, x.desc, sh - d.got, { order: x.order, usedIn: x.pn });
     });
     // Several forecasts together: ready when the last piece is.
     const combine = list => {
@@ -644,13 +677,27 @@
     };
 
     const orders = {};
-    const add = (o, src) => orders[o] || (orders[o] = { order: o, cust: src.cust || '', date: src.date || '', lines: [], extras: [], parts: new Set() });
+    const add = (o, src) => orders[o] || (orders[o] = { order: o, cust: src.cust || '', date: isoDate(src.date) || src.date || '', lines: [], extras: [], parts: new Set() });
     leaves.forEach(l => { const o = add(l.order, l); o.lines.push(l); o.parts.add(l.pn); if (!o.cust && l.cust) o.cust = l.cust; });
     extras.forEach(x => { if (orders[x.order]) { orders[x.order].extras.push(x); orders[x.order].parts.add(x.pn); } });
+    // Sales_Detail lines (freight, printing, cables…) that aren't already a part on the order. Duplicates are skipped.
+    const tracked = new Set();
+    leaves.forEach(l => tracked.add(l.order + '|' + l.pn));
+    extras.forEach(x => tracked.add(x.order + '|' + x.pn));
+    Object.values(orders).forEach(o => { o.other = []; });
+    sales.forEach(sl => {
+      if (tracked.has(sl.order + '|' + sl.pn)) return;
+      const o = orders[sl.order] || add(sl.order, sl);
+      if (!o.other) o.other = [];
+      if (!o.cust && sl.cust) o.cust = sl.cust;
+      if (!o.date && sl.date) o.date = isoDate(sl.date) || sl.date;
+      o.other.push(sl);
+    });
 
     const K = { lines: 0, covered: 0, sale: 0, saleMax: 0 };
     Object.values(orders).forEach(o => {
-      o.status = worst(o.lines.map(l => line.get(l).s).concat(o.extras.map(x => extra.get(x).s)));
+      o.status = o.lines.length || o.extras.length ? worst(o.lines.map(l => line.get(l).s).concat(o.extras.map(x => extra.get(x).s))) : 'na';
+      o.otherTotal = o.other.reduce((t, x) => t + (x.total != null ? x.total : (x.unit || 0) * (x.qty || 0)), 0);
       o.done = o.lines.filter(l => !line.get(l).f.left).length;
       o.p = 0; o.r = 0; o.need = 0; o.cost = 0; o.costTotal = 0;
       o.lines.forEach(l => { const f = line.get(l).f; o.p += f.p; o.r += f.r; o.need += need(l.req); o.cost += f.cost; o.costTotal += l.cost || 0; });
@@ -666,7 +713,7 @@
         if (sale != null) { o.sale += sale; o.saleMax += f0.price * ordered; o.priced = true; }
         o.partInfo[pn] = { units, ordered, sale };
       });
-      o.eta = combine(o.lines.map(l => fc.get(l)).concat(o.extras.map(x => xfc.get(x))));
+      o.eta = o.status === 'na' ? { kind: 'na' } : combine(o.lines.map(l => fc.get(l)).concat(o.extras.map(x => xfc.get(x))));
       // Which piece sets the date ("waiting on …")
       if (o.eta.kind === 'date' || o.eta.kind === 'none') {
         const hit = f => (o.eta.kind === 'none' ? f.kind === 'none' : f.kind === 'date' && f.date === o.eta.date);
@@ -677,7 +724,20 @@
       K.lines += o.lines.length; K.covered += o.done; K.sale += o.sale; K.saleMax += o.saleMax;
       if (o.status === 'missing') { K.missing = (K.missing || 0) + 1; if (o.eta.kind === 'date') K.missingIncoming = (K.missingIncoming || 0) + 1; }
     });
-    return { line, extra, orders, kitAvail, compAvail, K, fc, xfc, combine, supply };
+    // Urgent = nothing on hand to give and nothing on any PO → needs ordering.
+    const urgent = [], alsoShort = [];
+    Object.values(unmet).forEach(u => {
+      u.onhand = u.type === 'Component' ? ((inv.comps[u.part] || {}).onhand || 0) : ((inv.items[u.part] || {}).onhand || 0);
+      u.incoming = (supply[u.key] || []).reduce((t, r) => t + r.qty, 0);
+      u.freeAtStart = freeAtStart[u.key] || 0;
+      // built kits made from this component count as stock too
+      const kitsFree = u.type === 'Component' ? [...u.usedIn].reduce((t, k) => t + (freeAtStart['K|' + k] || 0) + (supply['K|' + k] || []).reduce((a, r) => a + r.qty, 0), 0) : 0;
+      u.firstOrder = [...u.orders].sort(byNum)[0];
+      if (!u.freeAtStart && !u.incoming && !kitsFree) urgent.push(u); else alsoShort.push(u);
+    });
+    const byFirst = (a, b) => byNum(a.firstOrder, b.firstOrder) || b.short - a.short;
+    urgent.sort(byFirst); alsoShort.sort(byFirst);
+    return { line, extra, orders, kitAvail, compAvail, K, fc, xfc, combine, supply, urgent, alsoShort };
   }
   // Status of one part inside one order (its component lines + its kit-level items).
   function partStatus(pn, order) {
@@ -773,12 +833,14 @@
     view = v;
     $('tabComponents').setAttribute('aria-selected', v === 'components');
     $('tabOrders').setAttribute('aria-selected', v === 'orders');
+    $('tabUrgent').setAttribute('aria-selected', v === 'urgent');
     $('sort').classList.toggle('hidden', v !== 'orders');
-    $('pageTitle').textContent = v === 'orders' ? 'All Orders' : 'Components';
+    $('pageTitle').textContent = v === 'orders' ? 'All Orders' : v === 'urgent' ? 'Urgent Parts' : 'Components';
     $('pageSub').textContent = v === 'orders'
       ? 'Every order in the system with its status, coverage and value. Open one to see everything in it.'
+      : v === 'urgent' ? 'Parts with nothing left to give (none on hand, or all of it already assigned) and nothing on any PO, but still needed by open orders. These need to be ordered.'
       : 'Every part on open orders, broken down into components, kits and orders. Assign built or raw stock to each order.';
-    try { history.replaceState(null, '', v === 'orders' ? '#orders' : '#components'); } catch (e) {}
+    try { history.replaceState(null, '', '#' + v); } catch (e) {}
     if (!quiet) { window.scrollTo(0, 0); safeRender(true); }
   }
   document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => setView(t.dataset.view)));
@@ -830,7 +892,7 @@
 
   // ---------- Data ----------
   function applySnapshot(r) {
-    leaves = r.leaves || []; extras = r.extras || []; pos = r.pos || []; alloc = r.alloc || {};
+    leaves = r.leaves || []; extras = r.extras || []; pos = r.pos || []; sales = r.sales || []; alloc = r.alloc || {};
     inv = r.inv || {}; inv.kits = inv.kits || {}; inv.comps = inv.comps || {}; inv.items = inv.items || {};
     Object.keys(pending).forEach(k => { pending[k] > 0 ? alloc[k] = pending[k] : delete alloc[k]; });
     $('salesWarn').textContent = r.salesError || '';
@@ -952,6 +1014,8 @@
       }
       return;
     }
+    const oc = e.target.closest('button[data-openorder]');
+    if (oc) { openOrder(oc.dataset.openorder); return; }
     const g = e.target.closest('button[data-go]');
     if (g) { try { goTo.apply(null, JSON.parse(g.dataset.go)); } catch (err) {} return; }
     const b = e.target.closest('button[data-k]');
@@ -1014,7 +1078,7 @@
 
   // ---------- KPI strip (both pages) ----------
   function renderKpis() {
-    const all = Object.values(D.orders), n = { full: 0, raw: 0, missing: 0, open: 0 };
+    const all = Object.values(D.orders), n = { full: 0, raw: 0, missing: 0, open: 0, na: 0 };
     all.forEach(o => n[o.status]++);
     const K = D.K;
     const pressed = f => (view === 'orders' && orderFilter === f);
@@ -1144,13 +1208,14 @@
         const kits = c.kits.map(k => {
           const kk = ck + '|k:' + k.part;
           const kitOn = (inv.kits[k.part] || {}).onhand || 0, compOn = (inv.comps[c.part] || {}).onhand || 0;
-          return '<details class="kit" data-key="' + esc(kk) + '"' + isOpen(kk, s) + '>' +
-            '<summary>' + CHEV + '<div style="min-width:0"><div class="t"><span class="lvl">Kit</span>' + esc(k.part) + (k.colour ? swatch(k.colour) : '') + '</div>' +
+          const fit = isFitKit(p.part);   // fit kits stop at the kit: no order breakdown below it
+          return (fit ? '<div class="kit flat" data-key="' + esc(kk) + '"><div class="krow">' : '<details class="kit" data-key="' + esc(kk) + '"' + isOpen(kk, s) + '><summary>') +
+            (fit ? '<span class="chev blank"></span>' : CHEV) + '<div style="min-width:0"><div class="t"><span class="lvl">Kit</span>' + esc(k.part) + (k.colour ? swatch(k.colour) : '') + '</div>' +
             (k.desc ? '<div class="d">' + esc(k.desc) + '</div>' : '') + '</div>' +
             '<div class="stock" title="Still free to assign, out of what is on hand"><span class="p">' + fmt(D.kitAvail(k.part)) + ' of ' + fmt(kitOn) + ' built left</span><span class="r">' + fmt(D.compAvail(c.part)) + ' of ' + fmt(compOn) + ' raw left</span>' +
               ((D.supply['R|' + c.part] || []).length || (D.supply['K|' + k.part] || []).length ? '<span class="in">+' + fmt([...(D.supply['R|' + c.part] || []), ...(D.supply['K|' + k.part] || [])].reduce((t, r) => t + r.qty, 0)) + ' incoming</span>' : '') + '</div>' +
-            covBlock(k.p, k.r, k.need, plural(k.orders.length, 'order')) + '</summary>' +
-            '<div class="kit-body">' + ordersBlock(c, k) + '</div></details>';
+            covBlock(k.p, k.r, k.need, plural(k.orders.length, 'order')) +
+            (fit ? '</div></div>' : '</summary><div class="kit-body">' + ordersBlock(c, k) + '</div></details>');
         }).join('');
         return '<details class="comp" data-key="' + esc(ck) + '"' + isOpen(ck, s) + '>' +
           '<summary>' + CHEV + '<div style="min-width:0"><div class="t"><span class="lvl">Component</span>' + esc(c.part) + '</div>' +
@@ -1213,18 +1278,33 @@
       fact('Customer', '<span title="' + esc(O.cust) + '">' + esc(O.cust || '—') + '</span>', '', '', 'wide') +
       fact('Ordered', esc(O.date || '—')) +
       fact('Status', chip(O.status)) +
-      fact('Expected by', etaShort(O.eta), O.eta.kind === 'none' || O.eta.late ? 'bad' : O.eta.kind === 'date' ? '' : 'good',
-           O.etaPart ? '<div class="sub">' + (O.eta.kind === 'none' ? 'no PO for ' : 'waiting on ') + '<span class="mono">' + esc(O.etaPart) + '</span></div>' : '') +
-      fact('Lines covered', O.done + ' / ' + O.lines.length, '', meter(O.p, O.r, O.need)) +
-      fact('Avg cost', money(O.cost) + ' <span style="color:var(--muted);font-weight:400;font-size:12px">/ ' + moneyShort(O.costTotal) + '</span>') +
+      (O.status === 'na' ? '' : fact('Expected by', etaShort(O.eta), O.eta.kind === 'none' || O.eta.late ? 'bad' : O.eta.kind === 'date' ? '' : 'good',
+           O.etaPart ? '<div class="sub">' + (O.eta.kind === 'none' ? 'no PO for ' : 'waiting on ') + '<span class="mono">' + esc(O.etaPart) + '</span></div>' : '')) +
+      (O.lines.length ? fact('Lines covered', O.done + ' / ' + O.lines.length, '', meter(O.p, O.r, O.need)) : '') +
+      (!O.lines.length ? '' : fact('Avg cost', money(O.cost) + ' <span style="color:var(--muted);font-weight:400;font-size:12px">/ ' + moneyShort(O.costTotal) + '</span>')) +
       (O.priced ? fact('Sale value', money(O.sale) + ' <span style="color:var(--muted);font-weight:400;font-size:12px">/ ' + moneyShort(O.saleMax) + '</span>', 'money') : '') +
       '</div>' +
-      '<div class="tablewrap"><table class="otable"><thead><tr><th>Part</th><th>Component</th><th>Kit</th>' +
+      (O.lines.length ? '<div class="tablewrap"><table class="otable"><thead><tr><th>Part</th><th>Component</th><th>Kit</th>' +
       '<th class="num">Req</th><th class="num painted">Built</th><th class="num raw">Raw</th><th class="num cost">Avg Cost</th><th class="num money">Sale Value</th><th>Status</th></tr></thead>' +
-      '<tbody>' + body + '</tbody></table></div>' + extrasBlock(O, ctx);
+      '<tbody>' + body + '</tbody></table></div>' : '') + extrasBlock(O, ctx) + otherLinesBlock(O, ctx);
   }
 
   const etaShort = f => !f || f.kind === 'now' ? 'Ready now' : f.kind === 'stock' ? 'In stock now' : f.kind === 'none' ? 'Not scheduled' : (f.late ? 'Overdue · ' : '') + niceDate(f.date);
+
+  // Lines from Sales_Detail that aren't tracked parts (freight, printing, cables, services…).
+  function otherLinesBlock(O, ctx) {
+    if (!O.other || !O.other.length) return '';
+    const key = 'S|' + ctx;
+    const rows = O.other.slice().sort((a, b) => byNum(cleanPn(a.pn), cleanPn(b.pn))).map(x =>
+      '<tr><td class="item">' + esc(cleanPn(x.pn)) + '</td><td style="color:var(--ink-2);white-space:normal">' + esc(x.desc) + '</td>' +
+      '<td class="num">' + fmt(x.qty) + '</td><td class="num">' + (x.unit != null ? money(x.unit) : '<span class="na">—</span>') + '</td>' +
+      '<td class="num money">' + money(x.total != null ? x.total : (x.unit || 0) * (x.qty || 0)) + '</td></tr>').join('');
+    return '<details class="extras" data-key="' + esc(key) + '"' + isOpen(key, O.status === 'na') + '>' +
+      '<summary>' + CHEV + '<span class="grow"><b>Also on this order</b> <span style="color:var(--muted)">· other sales lines from Sales_Detail (not tracked in stock) · ' + O.other.length + '</span></span>' +
+      '<span class="money" style="font-weight:650">' + money(O.otherTotal) + '</span></summary>' +
+      '<div class="xin"><div class="tablewrap"><table class="xtable"><thead><tr><th>Part</th><th>Description</th><th class="num">Qty</th><th class="num">Unit price</th><th class="num money">Line total</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody></table></div></div></details>';
+  }
 
   // Other items on the order (screws, boxes, inserts…) from the Kits tab.
   function extrasBlock(O, ctx) {
@@ -1249,25 +1329,25 @@
   // Order card, used on the All Orders page and inside a part's order list.
   function orderCard(o, key, status, statusTitle) {
     const open = openKeys.has(key);
-    const partsList = [...o.parts].sort((a, b) => byNum(cleanPn(a), cleanPn(b))).map(cleanPn);
+    const partsList = (o.parts.size ? [...o.parts] : o.other.map(x => x.pn)).sort((a, b) => byNum(cleanPn(a), cleanPn(b))).map(cleanPn);
     return '<details class="ocard lazy" data-key="' + esc(key) + '"' + (open ? ' open' : '') + '>' +
       '<summary>' + CHEV +
       '<div><div class="onum">' + esc(o.order) + '</div><div class="odate">' + esc(o.date || '') + '</div></div>' +
       '<div class="ocustw" style="min-width:0"><div class="ocust" title="' + esc(o.cust) + '">' + esc(o.cust || '—') + '</div>' +
         '<div class="oparts" title="' + esc(partsList.join(', ')) + '">' + partsList.map(esc).join(' · ') + '</div></div>' +
-      '<div class="ocovw"><div class="cov">' + meter(o.p, o.r, o.need) + '<div class="lbl"><span>' + o.done + ' / ' + o.lines.length + ' lines</span><span><b>' + pct(Math.min(o.p + o.r, o.need), o.need) + '%</b></span></div></div></div>' +
+      '<div class="ocovw">' + (o.status === 'na' ? '<span style="color:var(--muted);font-size:12px">' + plural(o.other.length, 'sales line') + ' only</span></div>' : '<div class="cov">' + meter(o.p, o.r, o.need) + '<div class="lbl"><span>' + o.done + ' / ' + o.lines.length + ' lines</span><span><b>' + pct(Math.min(o.p + o.r, o.need), o.need) + '%</b></span></div></div></div>') +
       '<div class="ostat">' + chip(status || o.status, '', statusTitle) + etaTag(o.eta, false) + '</div>' +
-      '<div class="oval">' + (o.priced ? money(o.sale) + '<small>of ' + moneyShort(o.saleMax) + '</small>' : '<span class="na">—</span>') + '</div>' +
+      '<div class="oval">' + (o.priced ? money(o.sale) + '<small>of ' + moneyShort(o.saleMax) + '</small>' : o.status === 'na' && o.otherTotal ? money(o.otherTotal) + '<small>sales lines</small>' : '<span class="na">—</span>') + '</div>' +
       '</summary><div class="ocard-body">' + (open ? '<div class="dwrap">' + orderView(o.order, null, key) + '</div>' : '') + '</div></details>';
   }
 
-  const etaKey = f => (f.kind === 'now' ? '0' : f.kind === 'stock' ? '1' : f.kind === 'date' ? '2' + f.date : '9');
+  const etaKey = f => (f.kind === 'na' ? '8' : f.kind === 'now' ? '0' : f.kind === 'stock' ? '1' : f.kind === 'date' ? '2' + f.date : '9');
 
   // ---------- All Orders page ----------
   function renderOrders(s) {
     const m = v => String(v || '').toLowerCase().includes(s);
     const list = Object.values(D.orders).filter(o => (orderFilter === 'all' || o.status === orderFilter) &&
-      (!s || m(o.order) || m(o.cust) || [...o.parts].some(m) || o.lines.some(l => m(l.comp) || m(l.kit)) || o.extras.some(x => m(x.item) || m(x.desc))));
+      (!s || m(o.order) || m(o.cust) || [...o.parts].some(m) || o.lines.some(l => m(l.comp) || m(l.kit)) || o.extras.some(x => m(x.item) || m(x.desc)) || o.other.some(x => m(x.pn) || m(x.desc))));
     const sorters = {
       order: (a, b) => byNum(a.order, b.order),
       status: (a, b) => RANK[b.status] - RANK[a.status] || byNum(a.order, b.order),
@@ -1282,6 +1362,49 @@
     return list.map(o => orderCard(o, 'O:' + o.order)).join('');
   }
 
+  // ---------- Urgent Parts page ----------
+  function urgentTable(list, showWhy) {
+    const rows = list.map(u => {
+      const orders = [...u.orders].sort(byNum);
+      const chips = orders.slice(0, 6).map(o => '<button type="button" class="ochip" data-openorder="' + esc(o) + '" title="Open order ' + esc(o) + '">' + esc(o) + '</button>').join('') +
+        (orders.length > 6 ? '<span class="more">+' + (orders.length - 6) + ' more</span>' : '');
+      const used = [...u.usedIn].sort(byNum).map(x => esc(cleanPn(x)));
+      const why = !showWhy ? '' : '<td class="why">' + (u.incoming ? 'On PO, not enough (' + fmt(u.incoming) + ' coming)' : u.freeAtStart ? 'Some in stock, not enough' : 'Built kits only, not enough') + '</td>';
+      return '<tr><td><div class="upart">' + esc(u.part) + '</div><div class="d">' + esc(u.desc || '') + '</div></td>' +
+        '<td><span class="utype">' + u.type + '</span></td>' +
+        '<td class="num">' + fmt(u.onhand) + (u.onhand && !u.freeAtStart ? '<div class="d" style="text-align:right">all assigned</div>' : '') + '</td>' +
+        '<td class="num"><b class="ushort">' + fmt(u.short) + '</b></td>' + why +
+        '<td><div class="ochips">' + chips + '</div></td>' +
+        '<td class="used" title="' + used.join(', ') + '">' + used.slice(0, 3).join(', ') + (used.length > 3 ? ' +' + (used.length - 3) : '') + '</td></tr>';
+    }).join('');
+    return '<div class="tablewrap"><table class="utable"><thead><tr><th>Part</th><th>Type</th><th class="num">On hand</th><th class="num">Need to order</th>' +
+      (showWhy ? '<th>Why</th>' : '') + '<th>Orders waiting</th><th>Used in</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }
+  function renderUrgent(s) {
+    const m = u => !s || [u.part, u.desc, u.type, ...u.orders, ...u.usedIn].some(v => String(v || '').toLowerCase().includes(s));
+    const list = D.urgent.filter(m), also = D.alsoShort.filter(m);
+    const total = list.reduce((t, u) => t + u.short, 0);
+    $('count').innerHTML = '<span>' + plural(list.length, 'part') + ' to order' + (list.length ? ' · ' + fmt(total) + ' units in total' : '') + (s ? ' matching “' + esc(s) + '”' : '') + ' · first order waiting first</span>';
+    let html = list.length ? urgentTable(list, false)
+      : '<div class="empty">Nothing urgent' + (s ? ' matches.' : '. Every part still needed is either in stock or on a PO.') + '</div>';
+    if (also.length) {
+      const key = 'U|also';
+      html += '<details class="extras alsoshort" data-key="' + key + '"' + isOpen(key) + '><summary>' + CHEV +
+        '<span class="grow"><b>Also short</b> <span style="color:var(--muted)">· some stock or a PO exists, but not enough for every order · ' + also.length + '</span></span>' +
+        chip('raw', '', '', plural(also.length, 'part')) + '</summary><div class="xin">' + urgentTable(also, true) + '</div></details>';
+    }
+    return html;
+  }
+  // Jump to an order on the All Orders page and open it.
+  function openOrder(order) {
+    $('search').value = ''; orderFilter = 'all';
+    openKeys.add('O:' + order);
+    setView('orders', true);
+    safeRender(true);
+    const el = $('list').querySelector('details[data-key="' + CSS.escape('O:' + order) + '"]');
+    if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  }
+
   // Open part → component → kit for a line and scroll to its order row.
   function goTo(pn, comp, kit, order) {
     if ($('search').value) $('search').value = '';
@@ -1289,7 +1412,8 @@
     [pk, ck, kk].forEach(k => openKeys.add(k));
     if (view !== 'components') setView('components', true);
     safeRender(true);
-    const row = $('list').querySelector('tr[data-row="' + CSS.escape(rowId(pn, comp, kit, order)) + '"]');
+    const row = $('list').querySelector('tr[data-row="' + CSS.escape(rowId(pn, comp, kit, order)) + '"]')
+             || $('list').querySelector('.kit.flat[data-key="' + CSS.escape(kk) + '"] > .krow');
     if (!row) return;
     row.scrollIntoView({ behavior: 'smooth', block: 'center' });
     row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash');
@@ -1298,9 +1422,11 @@
   function render() {
     D = derive();
     $('orderCount').textContent = Object.keys(D.orders).length;
+    $('urgentCount').textContent = D.urgent.length;
+    $('urgentCount').classList.toggle('zero', !D.urgent.length);
     renderKpis();
     const s = $('search').value.trim().toLowerCase();
-    $('list').innerHTML = view === 'orders' ? renderOrders(s) : renderComponents(s);
+    $('list').innerHTML = view === 'orders' ? renderOrders(s) : view === 'urgent' ? renderUrgent(s) : renderComponents(s);
   }
 
   if (token) showApp(); else $('u').focus();

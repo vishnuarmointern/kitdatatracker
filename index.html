@@ -318,6 +318,9 @@
   details.extras .xin { padding: 0 10px 10px; }
   .xtable { min-width: 640px; }
   .utable { min-width: 860px; }
+  .ptable { min-width: 1120px; }
+  .ptable .ochips { min-width: 190px; }
+  #ptype { min-width: 170px; }
   .utable td { vertical-align: top; padding-top: 11px; padding-bottom: 11px; }
   .utable .upart { font-family: var(--mono); font-weight: 600; font-size: 13px; }
   .utable .d { color: var(--muted); font-size: 12px; white-space: normal; max-width: 280px; }
@@ -369,7 +372,7 @@
   }
   @media (max-width: 700px) {
     .bar { grid-template-columns: 1fr auto; padding: 10px 14px; }
-    .tabs { grid-column: 1 / -1; order: 3; width: 100%; } .tab { flex: 1; justify-content: center; }
+    .tabs { grid-column: 1 / -1; order: 3; width: 100%; overflow-x: auto; scrollbar-width: none; } .tab { flex: 1 0 auto; justify-content: center; padding: 7px 12px; }
     .b.lbl span { display: none; } .b.lbl { width: 34px; padding: 0; justify-content: center; }
     main { padding: 16px 14px 80px; }
     .kpis { grid-template-columns: repeat(2, 1fr); }
@@ -430,6 +433,9 @@
         <button class="tab" role="tab" id="tabUrgent" data-view="urgent" aria-selected="false">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17.5v.5"/></svg>
           Urgent Parts <span class="badge urgent" id="urgentCount">–</span></button>
+        <button class="tab" role="tab" id="tabParts" data-view="parts" aria-selected="false">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg>
+          All Parts <span class="badge" id="partCount">–</span></button>
       </nav>
       <div class="actions">
         <button class="b primary lbl" id="autofillBtn" type="button" title="Autofill all orders">
@@ -461,6 +467,12 @@
         <input id="search" type="search" placeholder="Search parts, components, kits, customers, orders…" autocomplete="off" aria-label="Search">
         <span class="kbd" aria-hidden="true">/</span>
       </div>
+      <select id="ptype" aria-label="Part type" class="hidden">
+        <option value="all">All types</option>
+        <option value="Component">Components (raw)</option>
+        <option value="Built kit">Built kits</option>
+        <option value="Other item">Other items</option>
+      </select>
       <select id="sort" aria-label="Sort orders" class="hidden">
         <option value="order">Sort: Order number</option>
         <option value="status">Sort: Needs attention first</option>
@@ -499,7 +511,8 @@
   let leaves = [], extras = [], pos = [], sales = [], inv = { kits: {}, comps: {}, items: {} }, alloc = {};
   let pending = {};
   let saving = false, saveTimer = null, refreshTimer = null, needsRender = false, loaded = false;
-  let view = location.hash === '#orders' ? 'orders' : location.hash === '#urgent' ? 'urgent' : 'components';
+  let view = ({ '#orders': 'orders', '#urgent': 'urgent', '#parts': 'parts' })[location.hash] || 'components';
+  let partType = store.get('kt_ptype') || 'all';
   let orderFilter = 'all', orderSort = store.get('kt_sort') || 'order';
   const openKeys = new Set();
   const openOrders = new Set();
@@ -737,7 +750,38 @@
     });
     const byFirst = (a, b) => byNum(a.firstOrder, b.firstOrder) || b.short - a.short;
     urgent.sort(byFirst); alsoShort.sort(byFirst);
-    return { line, extra, orders, kitAvail, compAvail, K, fc, xfc, combine, supply, urgent, alsoShort };
+    // ---------- Every part, for the All Parts page ----------
+    const urgentKeys = new Set(urgent.map(u => u.key)), shortKeys = new Set(alsoShort.map(u => u.key));
+    const partsAll = [];
+    const mkPart = (key, type, part, desc, onhand, assigned, lines) => {
+      const orders = new Set(), usedIn = new Set();
+      lines.forEach(x => { orders.add(x.order); usedIn.add(x.usedIn); });
+      const sup = supply[key] || [];
+      const nextPO = sup.find(r => r.date) || sup[0];
+      const st = urgentKeys.has(key) ? 'urgent' : shortKeys.has(key) ? 'short' : 'ok';
+      partsAll.push({ key, type, part, desc, onhand, assigned, free: Math.max(0, onhand - assigned), incoming: sup.reduce((t, r) => t + r.qty, 0), nextPO,
+                      short: unmet[key] ? unmet[key].short : 0, orders, usedIn, st });
+    };
+    const compLines = {}, kitLines = {}, itemLines = {};
+    leaves.forEach(l => {
+      (compLines[l.comp] || (compLines[l.comp] = [])).push({ order: l.order, usedIn: l.kit, desc: l.compDesc });
+      (kitLines[l.kit] || (kitLines[l.kit] = [])).push({ order: l.order, usedIn: l.pn, desc: l.kitDesc });
+    });
+    const itemGive = {};
+    extras.forEach(x => { (itemLines[x.item] || (itemLines[x.item] = [])).push({ order: x.order, usedIn: x.pn, desc: x.desc }); itemGive[x.item] = (itemGive[x.item] || 0) + extra.get(x).give; });
+    Object.keys(compLines).forEach(c => mkPart('R|' + c, 'Component', c, compLines[c][0].desc, (inv.comps[c] || {}).onhand || 0, compUsed[c] || 0, compLines[c]));
+    Object.keys(kitLines).forEach(k => mkPart('K|' + k, 'Built kit', k, kitLines[k][0].desc, (inv.kits[k] || {}).onhand || 0, kitUsed[k] || 0, kitLines[k]));
+    Object.keys(itemLines).forEach(i => mkPart('I|' + i, 'Other item', i, itemLines[i][0].desc, (inv.items[i] || {}).onhand || 0, itemGive[i] || 0, itemLines[i]));
+    // Built-kit shortfalls are counted against the raw components they're made from, so a kit takes the worst status of those components.
+    const stOf = {}; partsAll.forEach(u => { stOf[u.key] = u.st; });
+    const sev = { ok: 0, short: 1, urgent: 2 };
+    partsAll.filter(u => u.type === 'Built kit').forEach(u => {
+      const comps = new Set(leaves.filter(l => l.kit === u.part).map(l => l.comp));
+      let worstC = 'ok';
+      comps.forEach(c => { const cs = stOf['R|' + c] || 'ok'; if (sev[cs] > sev[worstC]) worstC = cs; });
+      if (worstC !== 'ok' && u.st === 'ok') { u.st = 'kitwait'; u.viaRaw = worstC; }
+    });
+    return { line, extra, orders, kitAvail, compAvail, K, fc, xfc, combine, supply, urgent, alsoShort, partsAll };
   }
   // Status of one part inside one order (its component lines + its kit-level items).
   function partStatus(pn, order) {
@@ -834,17 +878,24 @@
     $('tabComponents').setAttribute('aria-selected', v === 'components');
     $('tabOrders').setAttribute('aria-selected', v === 'orders');
     $('tabUrgent').setAttribute('aria-selected', v === 'urgent');
+    $('tabParts').setAttribute('aria-selected', v === 'parts');
     $('sort').classList.toggle('hidden', v !== 'orders');
-    $('pageTitle').textContent = v === 'orders' ? 'All Orders' : v === 'urgent' ? 'Urgent Parts' : 'Components';
+    $('ptype').classList.toggle('hidden', v !== 'parts');
+    $('pageTitle').textContent = v === 'orders' ? 'All Orders' : v === 'urgent' ? 'Urgent Parts' : v === 'parts' ? 'All Parts' : 'Components';
     $('pageSub').textContent = v === 'orders'
       ? 'Every order in the system with its status, coverage and value. Open one to see everything in it.'
+      : v === 'parts' ? 'Every part needed by open orders: raw components, built kits and other items, with stock, incoming POs and what still needs ordering.'
       : v === 'urgent' ? 'Parts with nothing left to give (none on hand, or all of it already assigned) and nothing on any PO, but still needed by open orders. These need to be ordered.'
       : 'Every part on open orders, broken down into components, kits and orders. Assign built or raw stock to each order.';
     try { history.replaceState(null, '', '#' + v); } catch (e) {}
+    const at = document.querySelector('.tab[aria-selected="true"]');
+    if (at && at.scrollIntoView) at.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     if (!quiet) { window.scrollTo(0, 0); safeRender(true); }
   }
   document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => setView(t.dataset.view)));
   $('sort').value = orderSort;
+  $('ptype').value = partType;
+  $('ptype').addEventListener('change', () => { partType = $('ptype').value; store.set('kt_ptype', partType); safeRender(true); });
   $('sort').addEventListener('change', () => { orderSort = $('sort').value; store.set('kt_sort', orderSort); safeRender(true); });
   document.addEventListener('keydown', e => {
     if (e.key === '/' && !e.target.matches('input, select, textarea') && !$('app').classList.contains('hidden')) { e.preventDefault(); $('search').focus(); }
@@ -1395,6 +1446,39 @@
     }
     return html;
   }
+  // ---------- All Parts page ----------
+  const PST = { urgent: ['missing', 'Order now'], kitwait: ['open', 'Waiting on raw parts'], short: ['raw', 'Short'], ok: ['full', 'Covered'] };
+  function renderParts(s) {
+    const m = u => !s || [u.part, u.desc, u.type, ...u.orders, ...u.usedIn].some(v => String(v || '').toLowerCase().includes(s));
+    const rank = { urgent: 0, short: 1, kitwait: 2, ok: 3 }, trank = { 'Component': 0, 'Built kit': 1, 'Other item': 2 };
+    const list = D.partsAll.filter(u => (partType === 'all' || u.type === partType) && m(u))
+      .sort((a, b) => rank[a.st] - rank[b.st] || trank[a.type] - trank[b.type] || byNum(a.part, b.part));
+    const n = { urgent: 0, short: 0, kitwait: 0, ok: 0 };
+    list.forEach(u => n[u.st]++);
+    $('count').innerHTML = '<span>' + plural(list.length, 'part') + (s ? ' matching “' + esc(s) + '”' : '') + ' · ' +
+      ['urgent', 'short', 'kitwait', 'ok'].filter(k => n[k]).map(k => chip(PST[k][0], '', '', n[k] + ' ' + PST[k][1])).join(' ') + '</span>';
+    if (!list.length) return '<div class="empty">No parts match.</div>';
+    const rows = list.map(u => {
+      const orders = [...u.orders].sort(byNum);
+      const chips = orders.slice(0, 6).map(o => '<button type="button" class="ochip" data-openorder="' + esc(o) + '" title="Open order ' + esc(o) + '">' + esc(o) + '</button>').join('') +
+        (orders.length > 6 ? '<span class="more">+' + (orders.length - 6) + ' more</span>' : '');
+      const used = [...u.usedIn].sort(byNum).map(x => esc(cleanPn(x)));
+      const po = u.incoming ? '<b>+' + fmt(u.incoming) + '</b>' + (u.nextPO && u.nextPO.date ? '<div class="d" style="text-align:right">' + (u.nextPO.date < TODAY ? 'overdue ' : 'next ') + niceDate(u.nextPO.date) + '</div>' : '') : '<span class="zero">—</span>';
+      return '<tr><td><div class="upart">' + esc(u.part) + '</div><div class="d">' + esc(u.desc || '') + '</div></td>' +
+        '<td><span class="utype">' + u.type + '</span></td>' +
+        '<td class="num">' + fmt(u.onhand) + '</td>' +
+        '<td class="num">' + (u.assigned ? fmt(u.assigned) : '<span class="zero">0</span>') + '</td>' +
+        '<td class="num"><b>' + fmt(u.free) + '</b></td>' +
+        '<td class="num">' + po + '</td>' +
+        '<td class="num">' + (u.short ? '<b class="ushort">' + fmt(u.short) + '</b>' : u.viaRaw ? '<span class="d" title="Order the raw components this kit is built from">see raw parts</span>' : '<span class="zero">—</span>') + '</td>' +
+        '<td>' + chip(PST[u.st][0], '', u.st === 'urgent' ? 'Nothing to give and nothing on PO' : u.st === 'short' ? 'Stock or POs exist, but not enough for every order' : u.st === 'kitwait' ? 'Not enough built kits; the raw parts it is made from need ordering (see those rows)' : 'Every order using it is covered by stock or POs', PST[u.st][1]) + '</td>' +
+        '<td><div class="ochips">' + chips + '</div></td>' +
+        '<td class="used" title="' + used.join(', ') + '">' + used.slice(0, 3).join(', ') + (used.length > 3 ? ' +' + (used.length - 3) : '') + '</td></tr>';
+    }).join('');
+    return '<div class="tablewrap"><table class="utable ptable"><thead><tr><th>Part</th><th>Type</th><th class="num">On hand</th><th class="num">Assigned</th><th class="num">Free</th>' +
+      '<th class="num">Incoming</th><th class="num">Need to order</th><th>Status</th><th>Orders</th><th>Used in</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }
+
   // Jump to an order on the All Orders page and open it.
   function openOrder(order) {
     $('search').value = ''; orderFilter = 'all';
@@ -1424,9 +1508,10 @@
     $('orderCount').textContent = Object.keys(D.orders).length;
     $('urgentCount').textContent = D.urgent.length;
     $('urgentCount').classList.toggle('zero', !D.urgent.length);
+    $('partCount').textContent = D.partsAll.length;
     renderKpis();
     const s = $('search').value.trim().toLowerCase();
-    $('list').innerHTML = view === 'orders' ? renderOrders(s) : view === 'urgent' ? renderUrgent(s) : renderComponents(s);
+    $('list').innerHTML = view === 'orders' ? renderOrders(s) : view === 'urgent' ? renderUrgent(s) : view === 'parts' ? renderParts(s) : renderComponents(s);
   }
 
   if (token) showApp(); else $('u').focus();

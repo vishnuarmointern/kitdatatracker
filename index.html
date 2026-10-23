@@ -277,7 +277,22 @@
   .fact .v.money { color: var(--money); }
   .fact.wide { grid-column: span 2; }
   .fact .meter { margin-top: 6px; }
-  .otable { min-width: 860px; }
+  .otable { min-width: 900px; }
+  .stcell { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+  .eta { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 500; color: var(--ink-2); white-space: nowrap; }
+  .eta svg { flex: none; opacity: .8; }
+  .eta.date { color: var(--painted-ink); }
+  .eta.stock, .eta.now { color: var(--s-full-ink); }
+  .eta.late { color: var(--s-raw-ink); }
+  .eta.none { color: var(--s-miss-ink); }
+  .fact .v.good { color: var(--s-full-ink); } .fact .v.bad { color: var(--s-miss-ink); }
+  .fact .sub { font-size: 11.5px; color: var(--muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .incoming { margin-top: 10px; padding-top: 9px; border-top: 1px dashed var(--line); }
+  .incoming .ih { display: flex; align-items: center; gap: 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; margin-bottom: 4px; }
+  .incoming ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; font-size: 12.5px; color: var(--ink-2); }
+  .incoming b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .incoming .late { color: var(--s-raw-ink); font-weight: 600; }
+  .stock .in { background: var(--track); color: var(--ink-2); }
   .otable th, .otable td { padding: 8px 11px; font-size: 13px; }
   .otable tr.grp > td { background: var(--row); border-top: 1px solid var(--line); vertical-align: top; padding-top: 11px; padding-bottom: 11px; }
   .otable tbody tr.grp:first-child > td { border-top: 0; }
@@ -306,11 +321,12 @@
   /* ============ Order cards ============ */
   .ocard { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); margin-bottom: 8px; box-shadow: var(--shadow); }
   .ocard:hover, .ocard[open] { border-color: color-mix(in srgb, var(--faint) 60%, var(--line)); }
-  .ocard > summary { display: grid; grid-template-columns: 22px 120px minmax(0, 1.4fr) minmax(150px, 1fr) 130px 120px; gap: 16px; align-items: center; padding: 13px 16px; border-radius: var(--r); }
+  .ocard > summary { display: grid; grid-template-columns: 22px 120px minmax(0, 1.3fr) minmax(140px, 1fr) 170px 120px; gap: 16px; align-items: center; padding: 13px 16px; border-radius: var(--r); }
   .ocard .onum { font-family: var(--mono); font-size: 15px; font-weight: 600; }
   .ocard .odate { color: var(--muted); font-size: 12px; }
   .ocard .ocust { font-weight: 600; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ocard .oparts { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--mono); }
+  .ocard .ostat { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
   .ocard .oval { text-align: right; font-weight: 650; color: var(--money); font-variant-numeric: tabular-nums; }
   .ocard .oval small { display: block; color: var(--muted); font-weight: 400; font-size: 11px; }
   .ocard-body { padding: 0 16px 16px 54px; }
@@ -427,6 +443,7 @@
         <option value="status">Sort: Needs attention first</option>
         <option value="value">Sort: Order value</option>
         <option value="date">Sort: Order date</option>
+        <option value="eta">Sort: Expected date</option>
       </select>
       <div class="legend">
         <span><i class="sw painted"></i>Built</span>
@@ -456,7 +473,7 @@
     del: k => { try { sessionStorage.removeItem(k); } catch (e) {} }
   };
   let token = store.get('kt_token');
-  let leaves = [], extras = [], inv = { kits: {}, comps: {}, items: {} }, alloc = {};
+  let leaves = [], extras = [], pos = [], inv = { kits: {}, comps: {}, items: {} }, alloc = {};
   let pending = {};
   let saving = false, saveTimer = null, refreshTimer = null, needsRender = false, loaded = false;
   let view = (location.hash === '#orders') ? 'orders' : 'components';
@@ -475,6 +492,30 @@
   const money = n => '$' + Number(n || 0).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const moneyShort = n => n >= 100000 ? '$' + (n / 1000).toLocaleString('en-CA', { maximumFractionDigits: 0 }) + 'k'
                         : n >= 10000 ? '$' + (n / 1000).toLocaleString('en-CA', { maximumFractionDigits: 1 }) + 'k' : money(n);
+  // Dates are kept as 'yyyy-mm-dd' strings so they sort as text.
+  const pad = n => String(n).padStart(2, '0');
+  const TODAY = (() => { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); })();
+  const isoDate = v => { const m = String(v || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? m[0] : ''; };
+  const niceDate = iso => {
+    if (!iso) return '';
+    const d = new Date(iso + 'T12:00:00');
+    if (isNaN(d)) return iso;
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: iso.slice(0, 4) === TODAY.slice(0, 4) ? undefined : 'numeric' });
+  };
+  const CAL = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>';
+  // Forecast f = { kind: 'now' | 'stock' | 'date' | 'none', date, late, by }
+  function etaText(f) {
+    if (!f || f.kind === 'now') return 'Ready now';
+    if (f.kind === 'stock') return 'In stock now';
+    if (f.kind === 'none') return 'No incoming PO';
+    return (f.late ? 'Overdue · was due ' : 'Expected ') + niceDate(f.date);
+  }
+  function etaTag(f, compact) {
+    if (!f || f.kind === 'now') return compact ? '' : '<span class="eta now">' + CAL + 'Ready now</span>';
+    const cls = f.kind === 'none' ? 'none' : f.late ? 'late' : f.kind === 'stock' ? 'stock' : 'date';
+    const title = f.kind === 'date' && f.by && f.by.length ? ' title="' + esc('From ' + f.by.join(', ')) + '"' : '';
+    return '<span class="eta ' + cls + '"' + title + '>' + CAL + etaText(f) + '</span>';
+  }
   const plural = (n, w) => fmt(n) + ' ' + w + (n === 1 ? '' : 's');
   const pct = (a, b) => (b ? Math.round(a / b * 100) : 100);
   const cleanPn = s => String(s).replace(/^\s*-\s*/, '');
@@ -537,6 +578,71 @@
       extra.set(x, { give, short: n - give, s: n - give > 0 ? 'missing' : 'full' });
     });
 
+    // ---------- Forecast: when can each still-missing piece be filled? ----------
+    // Lowest order number first: free stock now, then incoming POs (OS_POs tab) in date order.
+    const supply = {};   // 'K|kit' (built), 'R|comp' (raw), 'I|item' (other items) → receipts sorted by date
+    pos.forEach(po => {
+      const key = inv.comps[po.part] ? 'R|' + po.part : inv.kits[po.part] ? 'K|' + po.part : inv.items[po.part] ? 'I|' + po.part : null;
+      if (!key) return;
+      (supply[key] || (supply[key] = [])).push({ date: isoDate(po.date), qty: po.qty, left: po.qty, po: po.po, vendor: po.vendor });
+    });
+    Object.values(supply).forEach(list => list.sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999')));
+    const freeNow = {};
+    Object.keys(inv.kits).forEach(k => { freeNow['K|' + k] = kitAvail(k); });
+    Object.keys(inv.comps).forEach(c => { freeNow['R|' + c] = compAvail(c); });
+    Object.keys(left).forEach(i => { freeNow['I|' + i] = Math.max(0, left[i]); });
+    // Take up to qty from these pools, earliest first. Returns how much was found, the latest date used and which POs.
+    function draw(keys, qty) {
+      let got = 0, date = '', usedNow = false; const by = [];
+      keys.forEach(k => { const t = Math.min(qty - got, freeNow[k] || 0); if (t > 0) { freeNow[k] -= t; got += t; usedNow = true; } });
+      const receipts = [];
+      keys.forEach(k => (supply[k] || []).forEach(r => receipts.push(r)));
+      receipts.sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999'));
+      for (const r of receipts) {
+        if (got >= qty) break;
+        const t = Math.min(qty - got, r.left);
+        if (t <= 0) continue;
+        r.left -= t; got += t;
+        if (r.date && r.date > date) date = r.date;
+        by.push((r.po ? 'PO ' + r.po : 'PO') + (r.date ? ' (' + niceDate(r.date) + ')' : ''));
+      }
+      return { got, date, usedNow, by };
+    }
+    const mkF = (enough, date, usedNow, by) => !enough ? { kind: 'none' }
+      : date ? { kind: 'date', date, late: date < TODAY, by } : { kind: usedNow ? 'stock' : 'now' };
+
+    const fc = new Map();
+    const groups = {};
+    leaves.forEach(l => { const k = l.order + '|' + l.kit; (groups[k] || (groups[k] = { order: l.order, kit: l.kit, lines: [] })).lines.push(l); });
+    Object.values(groups).sort((a, b) => byNum(a.order, b.order) || byNum(a.kit, b.kit)).forEach(g => {
+      const lefts = g.lines.map(l => line.get(l).f.left);
+      if (lefts.every(v => !v)) { g.lines.forEach(l => fc.set(l, { kind: 'now' })); return; }
+      // A free built kit covers every component line of that kit at once.
+      const b = Math.min(freeNow['K|' + g.kit] || 0, ...lefts);
+      if (b > 0) freeNow['K|' + g.kit] -= b;
+      g.lines.forEach((l, i) => {
+        const rem = lefts[i] - b;
+        if (lefts[i] <= 0) { fc.set(l, { kind: 'now' }); return; }
+        if (rem <= 0) { fc.set(l, { kind: 'stock' }); return; }
+        const d = draw(['R|' + l.comp, 'K|' + l.kit], rem);
+        fc.set(l, mkF(d.got >= rem, d.date, d.usedNow || b > 0, d.by));
+      });
+    });
+    const xfc = new Map();
+    extras.slice().sort((a, b) => byNum(a.order, b.order) || byNum(a.pn, b.pn) || byNum(a.item, b.item)).forEach(x => {
+      const sh = extra.get(x).short;
+      if (!sh) { xfc.set(x, { kind: 'now' }); return; }
+      const d = draw(['I|' + x.item], sh);
+      xfc.set(x, mkF(d.got >= sh, d.date, d.usedNow, d.by));
+    });
+    // Several forecasts together: ready when the last piece is.
+    const combine = list => {
+      if (list.some(f => f.kind === 'none')) return { kind: 'none' };
+      const dated = list.filter(f => f.kind === 'date');
+      if (dated.length) { const last = dated.reduce((a, b) => (b.date > a.date ? b : a)); return { kind: 'date', date: last.date, late: last.date < TODAY, by: last.by }; }
+      return list.some(f => f.kind === 'stock') ? { kind: 'stock' } : { kind: 'now' };
+    };
+
     const orders = {};
     const add = (o, src) => orders[o] || (orders[o] = { order: o, cust: src.cust || '', date: src.date || '', lines: [], extras: [], parts: new Set() });
     leaves.forEach(l => { const o = add(l.order, l); o.lines.push(l); o.parts.add(l.pn); if (!o.cust && l.cust) o.cust = l.cust; });
@@ -560,9 +666,18 @@
         if (sale != null) { o.sale += sale; o.saleMax += f0.price * ordered; o.priced = true; }
         o.partInfo[pn] = { units, ordered, sale };
       });
+      o.eta = combine(o.lines.map(l => fc.get(l)).concat(o.extras.map(x => xfc.get(x))));
+      // Which piece sets the date ("waiting on …")
+      if (o.eta.kind === 'date' || o.eta.kind === 'none') {
+        const hit = f => (o.eta.kind === 'none' ? f.kind === 'none' : f.kind === 'date' && f.date === o.eta.date);
+        const pick = o.lines.find(l => hit(fc.get(l)));
+        const pickX = !pick && o.extras.find(x => hit(xfc.get(x)));
+        o.etaPart = pick ? pick.comp : pickX ? pickX.item : '';
+      }
       K.lines += o.lines.length; K.covered += o.done; K.sale += o.sale; K.saleMax += o.saleMax;
+      if (o.status === 'missing') { K.missing = (K.missing || 0) + 1; if (o.eta.kind === 'date') K.missingIncoming = (K.missingIncoming || 0) + 1; }
     });
-    return { line, extra, orders, kitAvail, compAvail, K };
+    return { line, extra, orders, kitAvail, compAvail, K, fc, xfc, combine, supply };
   }
   // Status of one part inside one order (its component lines + its kit-level items).
   function partStatus(pn, order) {
@@ -715,7 +830,7 @@
 
   // ---------- Data ----------
   function applySnapshot(r) {
-    leaves = r.leaves || []; extras = r.extras || []; alloc = r.alloc || {};
+    leaves = r.leaves || []; extras = r.extras || []; pos = r.pos || []; alloc = r.alloc || {};
     inv = r.inv || {}; inv.kits = inv.kits || {}; inv.comps = inv.comps || {}; inv.items = inv.items || {};
     Object.keys(pending).forEach(k => { pending[k] > 0 ? alloc[k] = pending[k] : delete alloc[k]; });
     $('salesWarn').textContent = r.salesError || '';
@@ -911,7 +1026,7 @@
         '<div class="s" style="margin-top:6px">' + pct(K.covered, K.lines) + '% of order lines covered</div></button>' +
       tile('full', ST.full, n.full, pct(n.full, all.length) + '% · ready to ship') +
       tile('raw', ST.raw, n.raw, 'not built yet') +
-      tile('missing', ST.missing, n.missing, 'short on stock') +
+      tile('missing', ST.missing, n.missing, (K.missingIncoming || 0) + ' of ' + (K.missing || 0) + ' have POs coming') +
       tile('open', ST.open, n.open, 'stock available') +
       '<div class="kpi"><div class="k">Sale value covered</div><div class="v money">' + moneyShort(K.sale) + '</div>' +
         '<div class="s">of ' + moneyShort(K.saleMax) + ' possible</div></div>' +
@@ -960,7 +1075,7 @@
         '<td class="c">' + stepper(rk, c.part, 'raw', f.r, maxFor(rk)) + '</td>' +
         '<td class="num cost">' + (f.cost ? money(f.cost) : '<span class="zero">—</span>') + '</td>' +
         '<td class="num money">' + (sale == null ? '<span class="na" title="No unit_cdn in Sales_Detail for this order and part">—</span>' : sale ? money(sale) : '<span class="zero">—</span>') + '</td>' +
-        '<td>' + chip(s, f.left ? fmt(f.left) + ' short' : '') + '</td></tr>' +
+        '<td><div class="stcell">' + chip(s, f.left ? fmt(f.left) + ' short' : '') + etaTag(D.fc.get(o), true) + '</div></td></tr>' +
         (open ? '<tr class="detail"><td colspan="7"><div class="dwrap">' + orderView(o.order, o, 'k:' + id) + '</div></td></tr>' : '');
     }).join('');
 
@@ -969,6 +1084,9 @@
     const otherKits = [...new Set(leaves.filter(l => l.comp === c.part && l.kit !== k.part).map(l => l.kit))].sort(byNum);
     const kitComps = new Set(leaves.filter(l => l.kit === k.part).map(l => l.comp)).size;
 
+    const incoming = key => (D.supply[key] || []).map(r => '<li><b>+' + fmt(r.qty) + '</b> ' + (r.date ? (r.date < TODAY ? '<span class="late">overdue (' + niceDate(r.date) + ')</span>' : niceDate(r.date)) : 'no date') +
+      (r.po ? ' · PO ' + esc(r.po) : '') + (r.vendor ? ' · ' + esc(r.vendor) : '') + '</li>').join('');
+    const incomingBlock = key => { const h = incoming(key); return h ? '<div class="incoming"><div class="ih">' + CAL + 'Incoming on POs</div><ul>' + h + '</ul></div>' : ''; };
     const pool = (kind, title, on, used, note) =>
       '<div class="pool"><h4><i class="sw ' + kind + '"></i>' + title + '</h4>' +
       '<div class="meter">' + (used > 0 ? '<i class="' + kind + '" style="flex:' + used + '" title="Allocated: ' + fmt(used) + '"></i>' : '') +
@@ -980,8 +1098,8 @@
     // Stock boxes first, then the orders table.
     return '<div class="pools">' +
       pool('painted', 'Built ' + esc(k.part) + (k.colour ? ' · ' + esc(k.colour) : ''), kitOn, kitUsed,
-           kitComps > 1 ? 'This kit has ' + kitComps + ' components. One built kit covers the order under each of them.' : '') +
-      pool('raw', 'Raw ' + esc(c.part), compOn, compUsed, otherKits.length ? 'Shared with ' + otherKits.map(esc).join(', ') : '') +
+           (kitComps > 1 ? 'This kit has ' + kitComps + ' components. One built kit covers the order under each of them.' : '') + incomingBlock('K|' + k.part)) +
+      pool('raw', 'Raw ' + esc(c.part), compOn, compUsed, (otherKits.length ? 'Shared with ' + otherKits.map(esc).join(', ') : '') + incomingBlock('R|' + c.part)) +
       '</div>' +
       '<div class="tablewrap"><table class="ktable"><thead><tr><th>Order</th><th class="num">Qty req</th>' +
       '<th class="c painted">Built</th><th class="c raw">Raw</th><th class="num cost">Avg Cost</th><th class="num money">Sale Value</th><th>Status</th></tr></thead>' +
@@ -1029,7 +1147,8 @@
           return '<details class="kit" data-key="' + esc(kk) + '"' + isOpen(kk, s) + '>' +
             '<summary>' + CHEV + '<div style="min-width:0"><div class="t"><span class="lvl">Kit</span>' + esc(k.part) + (k.colour ? swatch(k.colour) : '') + '</div>' +
             (k.desc ? '<div class="d">' + esc(k.desc) + '</div>' : '') + '</div>' +
-            '<div class="stock" title="Still free to assign, out of what is on hand"><span class="p">' + fmt(D.kitAvail(k.part)) + ' of ' + fmt(kitOn) + ' built left</span><span class="r">' + fmt(D.compAvail(c.part)) + ' of ' + fmt(compOn) + ' raw left</span></div>' +
+            '<div class="stock" title="Still free to assign, out of what is on hand"><span class="p">' + fmt(D.kitAvail(k.part)) + ' of ' + fmt(kitOn) + ' built left</span><span class="r">' + fmt(D.compAvail(c.part)) + ' of ' + fmt(compOn) + ' raw left</span>' +
+              ((D.supply['R|' + c.part] || []).length || (D.supply['K|' + k.part] || []).length ? '<span class="in">+' + fmt([...(D.supply['R|' + c.part] || []), ...(D.supply['K|' + k.part] || [])].reduce((t, r) => t + r.qty, 0)) + ' incoming</span>' : '') + '</div>' +
             covBlock(k.p, k.r, k.need, plural(k.orders.length, 'order')) + '</summary>' +
             '<div class="kit-body">' + ordersBlock(c, k) + '</div></details>';
         }).join('');
@@ -1075,7 +1194,7 @@
         '<td class="num cost">' + money(cost) + '</td>' +
         '<td class="num money">' + (info.sale == null ? '<span class="na" title="No sale price or unit count for this part">—</span>'
           : '<b>' + money(info.sale) + '</b><span class="u">' + fmt(info.units) + ' of ' + fmt(info.ordered) + ' units</span>') + '</td>' +
-        '<td>' + chip(partStatus(pn, order)) + '</td></tr>';
+        '<td><div class="stcell">' + chip(partStatus(pn, order)) + etaTag(D.combine(group.map(l => D.fc.get(l)).concat(O.extras.filter(x => x.pn === pn).map(x => D.xfc.get(x)))), true) + '</div></td></tr>';
       const rows = group.map(l => {
         const { f, s } = D.line.get(l), me = markLeaf && l === markLeaf;
         const go = '<button type="button" class="go" data-go="' + esc(JSON.stringify([l.pn, l.comp, l.kit, l.order])) + '" title="Open this line to change it">' + esc(l.comp) + '</button>' +
@@ -1083,7 +1202,7 @@
         return '<tr class="sub' + (me ? ' me' : '') + '"><td></td><td title="' + esc(l.compDesc || '') + '">' + go + '</td>' +
           '<td class="kitc">' + esc(l.kit) + (l.colour ? ' <span style="color:var(--muted);font-family:var(--font)">· ' + esc(l.colour) + '</span>' : '') + '</td>' +
           '<td class="num">' + fmt(l.req) + '</td><td class="num pc">' + (f.p || '<span class="zero">0</span>') + '</td><td class="num rc">' + (f.r || '<span class="zero">0</span>') + '</td>' +
-          '<td class="num cost">' + (f.cost ? money(f.cost) : '<span class="zero">—</span>') + '</td><td></td><td>' + chip(s, f.left ? fmt(f.left) + ' short' : '') + '</td></tr>';
+          '<td class="num cost">' + (f.cost ? money(f.cost) : '<span class="zero">—</span>') + '</td><td></td><td><div class="stcell">' + chip(s, f.left ? fmt(f.left) + ' short' : '') + etaTag(D.fc.get(l), true) + '</div></td></tr>';
       }).join('');
       return head + rows;
     }).join('');
@@ -1094,6 +1213,8 @@
       fact('Customer', '<span title="' + esc(O.cust) + '">' + esc(O.cust || '—') + '</span>', '', '', 'wide') +
       fact('Ordered', esc(O.date || '—')) +
       fact('Status', chip(O.status)) +
+      fact('Expected by', etaShort(O.eta), O.eta.kind === 'none' || O.eta.late ? 'bad' : O.eta.kind === 'date' ? '' : 'good',
+           O.etaPart ? '<div class="sub">' + (O.eta.kind === 'none' ? 'no PO for ' : 'waiting on ') + '<span class="mono">' + esc(O.etaPart) + '</span></div>' : '') +
       fact('Lines covered', O.done + ' / ' + O.lines.length, '', meter(O.p, O.r, O.need)) +
       fact('Avg cost', money(O.cost) + ' <span style="color:var(--muted);font-weight:400;font-size:12px">/ ' + moneyShort(O.costTotal) + '</span>') +
       (O.priced ? fact('Sale value', money(O.sale) + ' <span style="color:var(--muted);font-weight:400;font-size:12px">/ ' + moneyShort(O.saleMax) + '</span>', 'money') : '') +
@@ -1102,6 +1223,8 @@
       '<th class="num">Req</th><th class="num painted">Built</th><th class="num raw">Raw</th><th class="num cost">Avg Cost</th><th class="num money">Sale Value</th><th>Status</th></tr></thead>' +
       '<tbody>' + body + '</tbody></table></div>' + extrasBlock(O, ctx);
   }
+
+  const etaShort = f => !f || f.kind === 'now' ? 'Ready now' : f.kind === 'stock' ? 'In stock now' : f.kind === 'none' ? 'Not scheduled' : (f.late ? 'Overdue · ' : '') + niceDate(f.date);
 
   // Other items on the order (screws, boxes, inserts…) from the Kits tab.
   function extrasBlock(O, ctx) {
@@ -1113,7 +1236,7 @@
       const c = D.extra.get(x), on = (inv.items[x.item] || {}).onhand || 0;
       return '<tr><td class="item">' + esc(x.item) + '</td><td style="color:var(--ink-2)">' + esc(x.desc) + '</td><td class="mono" style="font-size:12px;color:var(--muted)">' + esc(cleanPn(x.pn)) + '</td>' +
         '<td class="num">' + fmt(x.req) + '</td><td class="num">' + fmt(on) + '</td>' +
-        '<td>' + (c.short ? chip('missing', '', 'Not enough on hand after earlier orders', fmt(c.short) + ' short') : chip('full', '', 'In stock and set aside for this order', 'In stock')) + '</td></tr>';
+        '<td><div class="stcell">' + (c.short ? chip('missing', '', 'Not enough on hand after earlier orders', fmt(c.short) + ' short') : chip('full', '', 'In stock and set aside for this order', 'In stock')) + etaTag(D.xfc.get(x), true) + '</div></td></tr>';
     }).join('');
     return '<details class="extras" data-key="' + esc(key) + '"' + isOpen(key) + '>' +
       '<summary>' + CHEV + '<span class="grow"><b>Other items</b> <span style="color:var(--muted)">· screws, boxes, inserts and packaging · ' + list.length + '</span></span>' +
@@ -1133,10 +1256,12 @@
       '<div class="ocustw" style="min-width:0"><div class="ocust" title="' + esc(o.cust) + '">' + esc(o.cust || '—') + '</div>' +
         '<div class="oparts" title="' + esc(partsList.join(', ')) + '">' + partsList.map(esc).join(' · ') + '</div></div>' +
       '<div class="ocovw"><div class="cov">' + meter(o.p, o.r, o.need) + '<div class="lbl"><span>' + o.done + ' / ' + o.lines.length + ' lines</span><span><b>' + pct(Math.min(o.p + o.r, o.need), o.need) + '%</b></span></div></div></div>' +
-      '<div class="ostat">' + chip(status || o.status, '', statusTitle) + '</div>' +
+      '<div class="ostat">' + chip(status || o.status, '', statusTitle) + etaTag(o.eta, false) + '</div>' +
       '<div class="oval">' + (o.priced ? money(o.sale) + '<small>of ' + moneyShort(o.saleMax) + '</small>' : '<span class="na">—</span>') + '</div>' +
       '</summary><div class="ocard-body">' + (open ? '<div class="dwrap">' + orderView(o.order, null, key) + '</div>' : '') + '</div></details>';
   }
+
+  const etaKey = f => (f.kind === 'now' ? '0' : f.kind === 'stock' ? '1' : f.kind === 'date' ? '2' + f.date : '9');
 
   // ---------- All Orders page ----------
   function renderOrders(s) {
@@ -1146,6 +1271,7 @@
     const sorters = {
       order: (a, b) => byNum(a.order, b.order),
       status: (a, b) => RANK[b.status] - RANK[a.status] || byNum(a.order, b.order),
+      eta: (a, b) => etaKey(a.eta).localeCompare(etaKey(b.eta)) || byNum(a.order, b.order),
       value: (a, b) => b.saleMax - a.saleMax || byNum(a.order, b.order),
       date: (a, b) => String(a.date).localeCompare(String(b.date)) || byNum(a.order, b.order)
     };
